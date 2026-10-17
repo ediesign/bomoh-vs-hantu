@@ -686,7 +686,9 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.8);
     }
     .stat-pill.atk { background: rgba(185, 28, 28, 0.94); border: 1px solid #fca5a5; }
+    .stat-pill.def { background: rgba(2, 132, 199, 0.94); border: 1px solid #7dd3fc; }
     .stat-pill.hp  { background: rgba(21, 128, 61, 0.94); border: 1px solid #86efac; }
+    .stat-icon-img { width: 1.15em; height: 1.15em; object-fit: contain; vertical-align: middle; flex-shrink: 0; }
     .stat-pill.stat-pop-up {
       animation: statPopPulse 0.65s ease;
       background: #f59e0b !important;
@@ -1853,14 +1855,16 @@ function updateCardArrayFromTable(targetArray, table) {
       const nameVal = cells[offset + 3] || '';
       const roleVal = cells[offset + 4] || '';
       const atkVal  = parseInt(cells[offset + 5], 10);
-      const hpVal   = parseInt(cells[offset + 6], 10);
-      const synVal  = cells[offset + 7] || '';
-      const synBVal = cells[offset + 8] || '';
-      const descVal = cells[offset + 9] || '';
+      const defVal  = parseInt(cells[offset + 6], 10);
+      const hpVal   = parseInt(cells[offset + 7], 10);
+      const synVal  = cells[offset + 8] || '';
+      const synBVal = cells[offset + 9] || '';
+      const descVal = cells[offset + 10] || '';
 
       if (nameVal && nameVal.toLowerCase() !== 'nama') targetCard.name = nameVal;
       if (roleVal && roleVal.toLowerCase() !== 'role') targetCard.role = roleVal;
       if (!isNaN(atkVal)) targetCard.atk = atkVal;
+      if (!isNaN(defVal)) targetCard.def = defVal;
       if (!isNaN(hpVal)) targetCard.hp = hpVal;
       if (synVal && synVal.toLowerCase() !== 'synergy id') targetCard.syn = synVal;
       if (synBVal && synBVal.toLowerCase() !== 'bonus kombo') targetCard.synBonus = synBVal;
