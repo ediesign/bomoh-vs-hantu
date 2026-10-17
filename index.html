@@ -1587,18 +1587,23 @@
     </div>
   </div>
 
-  <!-- ================= MODAL 4: ZUM BUTIRAN KAD ================= -->
-  <div id="inspect-modal" class="modal-overlay" onclick="closeOnBackdrop(event, 'inspect-modal')">
-    <div class="modal-card" style="max-width:300px;align-items:center;text-align:center;">
-      <div style="width:160px;height:224px;" id="inspect-card-holder"></div>
-      <div class="scroll-body" style="width:100%;">
-        <h4 id="inspect-name" style="font-size:14px;margin-top:0;"></h4>
-        <div id="inspect-stats" style="font-weight:800;color:#065f46;margin:4px 0;"></div>
-        <p id="inspect-desc"></p>
-      </div>
-      <button class="btn-confirm-act" style="width:100%;" onclick="closeModal('inspect-modal')">TUTUP</button>
+ <!-- ================= MODAL 4: ZUM BUTIRAN KAD ================= -->
+<div id="inspect-modal" class="modal-overlay" style="z-index: 90;" onclick="closeOnBackdrop(event, 'inspect-modal')">
+  <div class="modal-card" style="max-width:310px;align-items:center;text-align:center;">
+    <div class="modal-header" style="width:100%;">
+      <div class="modal-title" style="font-size:12px;">🔍 BUTIRAN PENUH KAD</div>
+      <button class="mini-btn" onclick="closeModal('inspect-modal')">✕</button>
     </div>
+    <div style="width:160px;height:224px;" id="inspect-card-holder"></div>
+    <div class="scroll-body" style="width:100%;">
+      <h4 id="inspect-name" style="font-size:14px;margin-top:0;"></h4>
+      <div id="inspect-role" style="font-size:11px;font-weight:800;color:#9c6b19;margin-bottom:4px;"></div>
+      <div id="inspect-stats" style="font-weight:800;color:#065f46;margin:4px 0;"></div>
+      <p id="inspect-desc"></p>
+    </div>
+    <button class="btn-confirm-act" style="width:100%;" onclick="closeModal('inspect-modal')">TUTUP</button>
   </div>
+</div>
 
   <!-- ================= MODAL 5: GALERI 80 KAD ================= -->
   <div id="gallery-modal" class="modal-overlay" onclick="closeOnBackdrop(event, 'gallery-modal')">
@@ -2828,9 +2833,11 @@ function renderCardElementHTML(card, opts = {}) {
       ${equipBadge}
       ${allowInspect ? `<div class="card-info-btn" onclick="event.stopPropagation();openInspectCard('${card.id}')">i</div>` : ''}
       <div class="card-center-icon">
-        ${!card.img ? `<div class="card-emoji-art">${card.icon || '🃏'}</div>` : ''}
-        <div class="card-role-tag">${isEquip ? 'KAD EQUIP' : (card.role || 'Watak')}</div>
-      </div>
+     ${!card.img ? `
+       <div class="card-emoji-art">${card.icon || '🃏'}</div>
+       <div class="card-role-tag">${isEquip ? 'KAD EQUIP' : (card.role || 'Watak')}</div>
+     ` : ''}
+   </div>
       <div class="card-bottom-name">${card.name}</div>
       ${isDefeated ? `<div class="defeated-stamp"><span>KALAH</span></div>` : ''}
       ${isWinner ? `<div class="winner-crown-badge">👑 MENANG</div>` : ''}
@@ -3784,6 +3791,10 @@ function openInspectCard(cardId) {
   document.getElementById('inspect-card-holder').innerHTML = renderCardElementHTML(card, { allowInspect: false });
   document.getElementById('inspect-name').textContent = card.name;
   const isEq = card.id.startsWith('eb_') || card.id.startsWith('eh_');
+  const roleEl = document.getElementById('inspect-role');
+  if (roleEl) {
+    roleEl.textContent = isEq ? 'Kategori: Kad Equip / Senjata' : `Peranan (Role): ${card.role || 'Watak'}`;
+  }
   document.getElementById('inspect-stats').textContent = isEq
     ? `Bonus Equip: +${card.atk} ATK | +${card.hp} HP`
     : `Statistik Asas: ⚔️ ${card.atk} ATK | 🛡️ ${card.hp} HP`;
