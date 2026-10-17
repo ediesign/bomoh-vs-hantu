@@ -1317,7 +1317,7 @@
   <!-- Skrin Sentuhan Pertama supaya Pelayar Telefon Terus Mainkan Muzik -->
   <div id="splash-audio-gate" onclick="enterGameWithAudio()">
     <div class="splash-badge">🗡️👻</div>
-    <h2 style="font-family:'Cinzel Decorative',cursive;color:var(--gold);font-size:20px;margin-bottom:6px;">BOMOH VS HANTU</h2>
+    <h2 style="font-family:'Philosopher',sans-serif;color:var(--gold);font-size:20px;margin-bottom:6px;">BOMOH VS HANTU</h2>
     <p style="font-size:12px;color:#fde68a;max-width:290px;line-height:1.5;margin-bottom:18px;">
       Edisi Playtest V4 • Integrasi Google Sheets Live + Cantuman Equip Penuh & Sistem 10 Gelaran
     </p>
@@ -1407,7 +1407,7 @@
           </div>
         </div>
 
-        <div style="font-family:'Cinzel Decorative',cursive;font-size:10px;color:var(--gold);font-weight:900;" id="hud-deck-count">16W|18E</div>
+        <div style="font-family:'Philosopher',sans-serif;font-size:10px;color:var(--gold);font-weight:900;" id="hud-deck-count">16W|18E</div>
 
         <div class="player-hud-card right" id="hud-p2-box">
           <div class="hud-avatar-mini" id="hud-p2-av">👹</div>
@@ -1447,7 +1447,7 @@
 
       <!-- Banner Pendedahan Watak (5 Saat Hantu -> 5 Saat Bomoh) -->
       <div id="reveal-banner-overlay">
-        <div style="font-family:'Cinzel Decorative',cursive;font-size:13px;color:var(--gold);" id="reveal-banner-title">MENDEDAHKAN KAD WATAK HANTU...</div>
+        <div style="font-family:'Philosopher',sans-serif;font-size:13px;color:var(--gold);" id="reveal-banner-title">MENDEDAHKAN KAD WATAK HANTU...</div>
         <div style="font-size:11.5px;color:#fde68a;" id="reveal-banner-sub">Perhatikan barisan musuh di Laluan 1 hingga 4! (5s)</div>
         <div class="countdown-bar-wrap" style="border-top:none;padding-top:2px;">
           <div class="timer-progress-bg">
@@ -2447,8 +2447,8 @@ function simulateLaneBattleResult(laneIdx, myLanes, oppLanes, myCamp, myEquipCar
   if (!myOrig || !oppOrig) return null;
 
   const myIsBomoh = myCamp === 'bomoh';
-  const bStat = myIsBomoh ? { ...myOrig } : { ...oppOrig };
-  const hStat = myIsBomoh ? { ...oppOrig } : { ...myOrig };
+  const bStat = myIsBomoh ? { ...myOrig, def: myOrig.def || 0 } : { ...oppOrig, def: oppOrig.def || 0 };
+  const hStat = myIsBomoh ? { ...oppOrig, def: oppOrig.def || 0 } : { ...myOrig, def: myOrig.def || 0 };
 
   // 1. Kesan Cuaca Semasa
   matchState.weather.apply(bStat, hStat);
@@ -2459,7 +2459,7 @@ function simulateLaneBattleResult(laneIdx, myLanes, oppLanes, myCamp, myEquipCar
   if (hasAdjacentSynergy(bomohLanes, laneIdx)) { bStat.atk += 150; bStat.hp += 100; }
   if (hasAdjacentSynergy(hantuLanes, laneIdx)) { hStat.atk += 150; hStat.hp += 100; }
 
-  // 3. Kesan Equip
+  // 3. Kesan Equip (Termasuk Tambah/Tolak DEF)
   const bEq = myIsBomoh ? myEquipCard : oppEquipCard;
   const hEq = myIsBomoh ? oppEquipCard : myEquipCard;
 
@@ -2469,13 +2469,15 @@ function simulateLaneBattleResult(laneIdx, myLanes, oppLanes, myCamp, myEquipCar
   const actHEq = hSilenced ? null : hEq;
 
   if (actBEq) {
-    bStat.atk += actBEq.atk;
-    bStat.hp  += actBEq.hp;
+    bStat.atk = Math.max(0, bStat.atk + (actBEq.atk || 0));
+    bStat.def = Math.max(0, bStat.def + (actBEq.def || 0));
+    bStat.hp  = Math.max(10, bStat.hp + (actBEq.hp || 0));
     if (actBEq.effect === 'weaken') hStat.atk = Math.max(0, hStat.atk - 160);
   }
   if (actHEq) {
-    hStat.atk += actHEq.atk;
-    hStat.hp  += actHEq.hp;
+    hStat.atk = Math.max(0, hStat.atk + (actHEq.atk || 0));
+    hStat.def = Math.max(0, hStat.def + (actHEq.def || 0));
+    hStat.hp  = Math.max(10, hStat.hp + (actHEq.hp || 0));
     if (actHEq.effect === 'weaken') bStat.atk = Math.max(0, bStat.atk - 160);
   }
 
@@ -2486,15 +2488,21 @@ function simulateLaneBattleResult(laneIdx, myLanes, oppLanes, myCamp, myEquipCar
     if (actBEq && actBEq.effect === 'stun' && !hAntiTrap) hStat.atk = 0;
     if (actHEq && actHEq.effect === 'stun' && !bAntiTrap) bStat.atk = 0;
   }
-  if (actBEq && actBEq.effect === 'reflect' && !hAntiTrap) hStat.hp -= 220;
-  if (actHEq && actHEq.effect === 'reflect' && !bAntiTrap) bStat.hp -= 220;
+  if (actBEq && actBEq.effect === 'reflect' && !hAntiTrap) hStat.hp = Math.max(0, hStat.hp - 220);
+  if (actHEq && actHEq.effect === 'reflect' && !bAntiTrap) bStat.hp = Math.max(0, bStat.hp - 220);
 
-  const remBomohHP = Math.max(0, bStat.hp - hStat.atk);
-  const remHantuHP = Math.max(0, hStat.hp - bStat.atk);
+  // FORMULA PILIHAN A: Damage = ATK Musuh - DEF Sendiri (Minimum 10 Damage jika ATK > 0)
+  const dmgToBomoh = hStat.atk > 0 ? Math.max(10, hStat.atk - bStat.def) : 0;
+  const dmgToHantu = bStat.atk > 0 ? Math.max(10, bStat.atk - hStat.def) : 0;
+
+  const remBomohHP = Math.max(0, bStat.hp - dmgToBomoh);
+  const remHantuHP = Math.max(0, hStat.hp - dmgToHantu);
 
   const myFinalATK = myIsBomoh ? bStat.atk : hStat.atk;
+  const myFinalDEF = myIsBomoh ? bStat.def : hStat.def;
   const myFinalHP  = myIsBomoh ? bStat.hp : hStat.hp;
   const oppFinalATK = myIsBomoh ? hStat.atk : bStat.atk;
+  const oppFinalDEF = myIsBomoh ? hStat.def : bStat.def;
   const oppFinalHP  = myIsBomoh ? hStat.hp : bStat.hp;
 
   const myRemHP  = myIsBomoh ? remBomohHP : remHantuHP;
@@ -2507,8 +2515,10 @@ function simulateLaneBattleResult(laneIdx, myLanes, oppLanes, myCamp, myEquipCar
   return {
     outcome,
     myFinalATK,
+    myFinalDEF,
     myFinalHP,
     oppFinalATK,
+    oppFinalDEF,
     oppFinalHP,
     myRemHP,
     oppRemHP,
@@ -3305,8 +3315,8 @@ async function startSequentialBattle() {
     const bomohEq   = p1IsBomoh ? matchState.p1Equips[i] : matchState.p2Equips[i];
 
     // Kira statistik awal dengan kesan Cuaca + Sinergi (Sebelum Equip)
-    const bPreEq = { ...bomohOrig };
-    const hPreEq = { ...hantuOrig };
+    const bPreEq = { ...bomohOrig, def: bomohOrig.def || 0 };
+    const hPreEq = { ...hantuOrig, def: hantuOrig.def || 0 };
     matchState.weather.apply(bPreEq, hPreEq);
 
     const bomohLanesArr = p1IsBomoh ? matchState.p1Lanes : matchState.p2Lanes;
@@ -3329,18 +3339,19 @@ async function startSequentialBattle() {
     holderHantu.className = 'duel-card-holder pos-left';
     holderBomoh.className = 'duel-card-holder pos-right';
 
-    // FASA 1 (5 SAAT): Paparkan Kedua-dua Kad Watak di Tengah Skrin Supaya Pemain Sempat Baca!
-    holderHantu.innerHTML = renderCardElementHTML({ ...hantuOrig, atk: hPreEq.atk, hp: hPreEq.hp }, { allowInspect: false });
-    holderBomoh.innerHTML = renderCardElementHTML({ ...bomohOrig, atk: bPreEq.atk, hp: bPreEq.hp }, { allowInspect: false });
+    // FASA 1 (5 SAAT): Paparkan Kedua-dua Kad Watak (ATK | DEF | HP)
+    holderHantu.innerHTML = renderCardElementHTML({ ...hantuOrig, atk: hPreEq.atk, def: hPreEq.def, hp: hPreEq.hp }, { allowInspect: false });
+    holderBomoh.innerHTML = renderCardElementHTML({ ...bomohOrig, atk: bPreEq.atk, def: bPreEq.def, hp: bPreEq.hp }, { allowInspect: false });
     narrativeBox.innerHTML = `
       <strong>Fasa 1 — Pertembungan Watak Laluan ${i + 1}:</strong><br/>
-      👻 <strong>${hantuOrig.name}</strong> (⚔️${hPreEq.atk} | 🛡️${hPreEq.hp}) berdepan 🗡️ <strong>${bomohOrig.name}</strong> (⚔️${bPreEq.atk} | 🛡️${bPreEq.hp}).
+      👻 <strong>${hantuOrig.name}</strong> (⚔️${hPreEq.atk} | 🛡️${hPreEq.def} | ❤️${hPreEq.hp})<br/>
+      🗡️ <strong>${bomohOrig.name}</strong> (⚔️${bPreEq.atk} | 🛡️${bPreEq.def} | ❤️${bPreEq.hp})
     `;
     overlay.classList.add('active');
     cdRow.style.display = 'flex';
     await runCountdownBar(5, timerBar, timerLbl, '');
 
-    // FASA 2 (5 SAAT): Keluarkan Kad Equip Saiz Penuh Bertindih Di Atas Kad Watak + Efek Sparkle + Live Stat Update!
+    // FASA 2 (5 SAAT): Cantuman Kad Equip + Efek Sparkle + Live Stat Update (ATK | DEF | HP)!
     matchState.laneRevealedEquip[i] = true;
     renderBoardRows();
 
@@ -3353,13 +3364,15 @@ async function startSequentialBattle() {
     const actHantuEq = hSilenced ? null : hantuEq;
 
     if (actBomohEq) {
-      bPostEq.atk += actBomohEq.atk;
-      bPostEq.hp  += actBomohEq.hp;
+      bPostEq.atk = Math.max(0, bPostEq.atk + (actBomohEq.atk || 0));
+      bPostEq.def = Math.max(0, bPostEq.def + (actBomohEq.def || 0));
+      bPostEq.hp  = Math.max(10, bPostEq.hp + (actBomohEq.hp || 0));
       if (actBomohEq.effect === 'weaken') hPostEq.atk = Math.max(0, hPostEq.atk - 160);
     }
     if (actHantuEq) {
-      hPostEq.atk += actHantuEq.atk;
-      hPostEq.hp  += actHantuEq.hp;
+      hPostEq.atk = Math.max(0, hPostEq.atk + (actHantuEq.atk || 0));
+      hPostEq.def = Math.max(0, hPostEq.def + (actHantuEq.def || 0));
+      hPostEq.hp  = Math.max(10, hPostEq.hp + (actHantuEq.hp || 0));
       if (actHantuEq.effect === 'weaken') bPostEq.atk = Math.max(0, bPostEq.atk - 160);
     }
 
@@ -3377,9 +3390,8 @@ async function startSequentialBattle() {
       playBattleSFX('sparkle_fusion');
       let eqLogLines = [];
 
-      // Kemas kini nilai ⚔️ ATK dan 🛡️ HP pada Kad Watak secara langsung + Letak Kad Equip Saiz Penuh Bertindih di Bawahnya!
       holderHantu.innerHTML = renderCardElementHTML(
-        { ...hantuOrig, atk: hPostEq.atk, hp: hPostEq.hp },
+        { ...hantuOrig, atk: hPostEq.atk, def: hPostEq.def, hp: hPostEq.hp },
         { allowInspect: false, statPop: true, fusionGlow: !!hantuEq }
       );
       if (hantuEq) {
@@ -3388,11 +3400,11 @@ async function startSequentialBattle() {
           <div class="stacked-full-equip-card">${renderCardElementHTML(hantuEq, { allowInspect: false })}</div>
           <div class="fusion-sparkle-ring">✨⚡✨</div>
         `);
-        eqLogLines.push(`👻 <strong>${hantuOrig.name}</strong> bergabung dengan <strong>${hantuEq.name}</strong> ➔ ⚔️${hPostEq.atk} | 🛡️${hPostEq.hp}!`);
+        eqLogLines.push(`👻 <strong>${hantuOrig.name}</strong> + <strong>${hantuEq.name}</strong> ➔ ⚔️${hPostEq.atk} | 🛡️${hPostEq.def} | ❤️${hPostEq.hp}`);
       }
 
       holderBomoh.innerHTML = renderCardElementHTML(
-        { ...bomohOrig, atk: bPostEq.atk, hp: bPostEq.hp },
+        { ...bomohOrig, atk: bPostEq.atk, def: bPostEq.def, hp: bPostEq.hp },
         { allowInspect: false, statPop: true, fusionGlow: !!bomohEq }
       );
       if (bomohEq) {
@@ -3401,7 +3413,7 @@ async function startSequentialBattle() {
           <div class="stacked-full-equip-card">${renderCardElementHTML(bomohEq, { allowInspect: false })}</div>
           <div class="fusion-sparkle-ring">✨⚡✨</div>
         `);
-        eqLogLines.push(`🗡️ <strong>${bomohOrig.name}</strong> bergabung dengan <strong>${bomohEq.name}</strong> ➔ ⚔️${bPostEq.atk} | 🛡️${bPostEq.hp}!`);
+        eqLogLines.push(`🗡️ <strong>${bomohOrig.name}</strong> + <strong>${bomohEq.name}</strong> ➔ ⚔️${bPostEq.atk} | 🛡️${bPostEq.def} | ❤️${bPostEq.hp}`);
       }
 
       narrativeBox.innerHTML = `<strong>Fasa 2 — Cantuman Kad Equip & Perubahan Kuasa:</strong><br/>` + eqLogLines.join('<br/>');
@@ -3411,7 +3423,7 @@ async function startSequentialBattle() {
       await runCountdownBar(2, timerBar, timerLbl, '');
     }
 
-    // FASA 3: Animasi Berlaga & Keputusan Pemenang Laluan (10 Saat)
+    // FASA 3: Animasi Berlaga & Kiraan Formula Pilihan A (ATK - DEF, Minimum 10 Damage)
     cdRow.style.display = 'none';
     playBattleSFX('war_clash');
     holderHantu.className = 'duel-card-holder clash-left';
@@ -3420,8 +3432,11 @@ async function startSequentialBattle() {
     await waitMs(550);
     fxSpot.innerHTML = '';
 
-    const remBomohHP = Math.max(0, bPostEq.hp - hPostEq.atk);
-    const remHantuHP = Math.max(0, hPostEq.hp - bPostEq.atk);
+    const dmgToBomoh = hPostEq.atk > 0 ? Math.max(10, hPostEq.atk - bPostEq.def) : 0;
+    const dmgToHantu = bPostEq.atk > 0 ? Math.max(10, bPostEq.atk - hPostEq.def) : 0;
+
+    const remBomohHP = Math.max(0, bPostEq.hp - dmgToBomoh);
+    const remHantuHP = Math.max(0, hPostEq.hp - dmgToHantu);
 
     let winnerCamp = 'draw';
     if (remBomohHP > remHantuHP) winnerCamp = 'bomoh';
@@ -3433,25 +3448,26 @@ async function startSequentialBattle() {
     if (winnerCamp === 'bomoh') {
       holderBomoh.className = 'duel-card-holder winner-front';
       holderHantu.className = 'duel-card-holder loser-back';
-      holderBomoh.innerHTML = renderCardElementHTML({ ...bomohOrig, atk: bPostEq.atk, hp: remBomohHP }, { isWinner: true, allowInspect: false });
-      holderHantu.innerHTML = renderCardElementHTML({ ...hantuOrig, atk: hPostEq.atk, hp: remHantuHP }, { isDefeated: true, allowInspect: false });
-      resultHeadline = `✅ <strong>${bomohOrig.name} (BOMOH) MENANG LALUAN ${i + 1}!</strong> (Baki ${remBomohHP} HP vs ${remHantuHP} HP)`;
+      holderBomoh.innerHTML = renderCardElementHTML({ ...bomohOrig, atk: bPostEq.atk, def: bPostEq.def, hp: remBomohHP }, { isWinner: true, allowInspect: false });
+      holderHantu.innerHTML = renderCardElementHTML({ ...hantuOrig, atk: hPostEq.atk, def: hPostEq.def, hp: remHantuHP }, { isDefeated: true, allowInspect: false });
+      resultHeadline = `✅ <strong>${bomohOrig.name} MENANG!</strong> (Baki ❤️${remBomohHP} vs ❤️${remHantuHP})`;
     } else if (winnerCamp === 'hantu') {
       holderHantu.className = 'duel-card-holder winner-front';
       holderBomoh.className = 'duel-card-holder loser-back';
-      holderHantu.innerHTML = renderCardElementHTML({ ...hantuOrig, atk: hPostEq.atk, hp: remHantuHP }, { isWinner: true, allowInspect: false });
-      holderBomoh.innerHTML = renderCardElementHTML({ ...bomohOrig, atk: bPostEq.atk, hp: remBomohHP }, { isDefeated: true, allowInspect: false });
-      resultHeadline = `🔥 <strong>${hantuOrig.name} (HANTU) MENANG LALUAN ${i + 1}!</strong> (Baki ${remHantuHP} HP vs ${remBomohHP} HP)`;
+      holderHantu.innerHTML = renderCardElementHTML({ ...hantuOrig, atk: hPostEq.atk, def: hPostEq.def, hp: remHantuHP }, { isWinner: true, allowInspect: false });
+      holderBomoh.innerHTML = renderCardElementHTML({ ...bomohOrig, atk: bPostEq.atk, def: bPostEq.def, hp: remBomohHP }, { isDefeated: true, allowInspect: false });
+      resultHeadline = `🔥 <strong>${hantuOrig.name} MENANG!</strong> (Baki ❤️${remHantuHP} vs ❤️${remBomohHP})`;
     } else {
       holderHantu.className = 'duel-card-holder pos-left';
       holderBomoh.className = 'duel-card-holder pos-right';
-      holderHantu.innerHTML = renderCardElementHTML({ ...hantuOrig, atk: hPostEq.atk, hp: remHantuHP }, { isDefeated: true, allowInspect: false });
-      holderBomoh.innerHTML = renderCardElementHTML({ ...bomohOrig, atk: bPostEq.atk, hp: remBomohHP }, { isDefeated: true, allowInspect: false });
-      resultHeadline = `⚖️ <strong>LALUAN ${i + 1} SERI!</strong> Kedua-dua watak terikat (${remBomohHP} HP).`;
+      holderHantu.innerHTML = renderCardElementHTML({ ...hantuOrig, atk: hPostEq.atk, def: hPostEq.def, hp: remHantuHP }, { isDefeated: true, allowInspect: false });
+      holderBomoh.innerHTML = renderCardElementHTML({ ...bomohOrig, atk: bPostEq.atk, def: bPostEq.def, hp: remBomohHP }, { isDefeated: true, allowInspect: false });
+      resultHeadline = `⚖️ <strong>LALUAN ${i + 1} SERI!</strong> Kedua-dua watak terikat (❤️${remBomohHP} HP).`;
     }
 
     narrativeBox.innerHTML = `
-      <div>⚔️ <strong>${bomohOrig.name}</strong> (${bPostEq.atk} ATK) vs <strong>${hantuOrig.name}</strong> (${hPostEq.atk} ATK)</div>
+      <div>🗡️ <strong>${bomohOrig.name}</strong> (${bPostEq.atk} ATK - 🛡️${hPostEq.def} DEF Hantu = <strong>-${dmgToHantu} HP</strong>)</div>
+      <div>👻 <strong>${hantuOrig.name}</strong> (${hPostEq.atk} ATK - 🛡️${bPostEq.def} DEF Bomoh = <strong>-${dmgToBomoh} HP</strong>)</div>
       <div style="margin-top:4px;">${resultHeadline}</div>
     `;
 
@@ -3653,7 +3669,7 @@ function openLeaderboardModal(fromMatchEnd = false) {
       promoBannerHTML = `
         <div class="new-title-banner">
           <div style="font-size:22px;">👑✨</div>
-          <div style="font-family:'Cinzel Decorative',cursive;font-size:13px;color:var(--gold);">TAHNIAH! NAIK GELARAN BAHARU!</div>
+          <div style="font-family:'Philosopher',sans-serif;font-size:13px;color:var(--gold);">TAHNIAH! NAIK GELARAN BAHARU!</div>
           <div style="font-size:11.5px;margin-top:3px;">
             <strong>${u.player}</strong> telah meningkat daripada <em>${u.oldT}</em> kepada Gelaran:<br/>
             <strong style="font-size:14px;color:#fde047;">🔥 ${u.newT.toUpperCase()} 🔥</strong>
@@ -3663,7 +3679,7 @@ function openLeaderboardModal(fromMatchEnd = false) {
     } else {
       promoBannerHTML = `
         <div class="new-title-banner">
-          <div style="font-family:'Cinzel Decorative',cursive;font-size:12.5px;color:var(--gold);">🏆 KEMAS KINI MATA & GELARAN JUARA</div>
+          <div style="font-family:'Philosopher',sans-serif;font-size:12.5px;color:var(--gold);">🏆 KEMAS KINI MATA & GELARAN JUARA</div>
           <div style="font-size:11.5px;margin-top:3px;">
             Juara: <strong>${lastRankingTransition.winnerName}</strong> • Gelaran Semasa: <strong style="color:#fde047;">${lastRankingTransition.winnerTitleNow}</strong>
           </div>
@@ -3768,9 +3784,10 @@ function openInspectCard(cardId) {
   const roleEl = document.getElementById('inspect-role');
   if (roleEl) roleEl.textContent = isEq ? 'Kategori: Kad Equip' : `Peranan: ${card.role || 'Watak'}`;
   
+ const fmt = (v) => (v > 0 ? `+${v}` : `${v || 0}`);
   document.getElementById('inspect-stats').innerHTML = isEq
-    ? `Bonus Equip: ⚔️ +${card.atk} ATK | 🛡️ +${card.def||0} DEF | ❤️ +${card.hp} HP`
-    : `Statistik Asas: ⚔️ ${card.atk} ATK | 🛡️ ${card.def||0} DEF | ❤️ ${card.hp} HP`;
+    ? `Bonus Equip: ⚔️ ${fmt(card.atk)} ATK | 🛡️ ${fmt(card.def)} DEF | ❤️ ${fmt(card.hp)} HP`
+    : `Statistik Asas: ⚔️ ${card.atk} ATK | 🛡️ ${card.def || 0} DEF | ❤️ ${card.hp} HP`;
     
   document.getElementById('inspect-desc').innerHTML = `${card.desc||''}${card.synBonus ? `<br/><strong style="color:#0f766e;">🔗 Kombo: ${card.synBonus}</strong>` : ''}`;
   openModal('inspect-modal');
