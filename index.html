@@ -1,0 +1,3852 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>BOMOH VS HANTU — Demo Playtest V4</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold: #f5c542;
+      --gold-light: #ffe89e;
+      --gold-dark: #9c6b19;
+      --bomoh-main: #10b981;
+      --bomoh-dark: #064e3b;
+      --hantu-main: #ef4444;
+      --hantu-dark: #450a0a;
+      --bg-dark: #090604;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      background: #040303;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #fff;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #app-frame {
+      position: relative;
+      width: 100%;
+      max-width: 440px;
+      height: 100dvh;
+      max-height: 940px;
+      background: #120c08;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 0 50px rgba(0,0,0,0.95);
+      border-left: 1px solid rgba(245, 197, 66, 0.22);
+      border-right: 1px solid rgba(245, 197, 66, 0.22);
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      z-index: 1;
+      overflow: hidden;
+    }
+    .screen.active { display: flex; }
+
+    /* Skrin Sentuhan Pertama supaya BGM Terus Main */
+    #splash-audio-gate {
+      position: absolute;
+      inset: 0;
+      z-index: 100;
+      background: radial-gradient(circle at center, rgba(35,20,10,0.94), rgba(5,3,2,0.99));
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+    }
+    .splash-badge {
+      font-size: 54px;
+      margin-bottom: 12px;
+      filter: drop-shadow(0 0 18px rgba(245,197,66,0.7));
+      animation: floatPulse 2s infinite ease-in-out;
+    }
+    @keyframes floatPulse {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-6px) scale(1.06); }
+    }
+
+    /* ================= 1. SKRIN MENU UTAMA ================= */
+    #home-screen {
+      background-color: #140d09;
+      background-size: cover;
+      background-position: center top;
+      justify-content: space-between;
+      padding: 12px;
+    }
+    #home-screen::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.05) 30%, rgba(10,6,4,0.92) 72%, rgba(7,4,3,0.99) 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .top-nav {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .active-user-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(18, 11, 7, 0.92);
+      border: 1.5px solid var(--gold);
+      border-radius: 999px;
+      padding: 4px 12px 4px 5px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.85);
+    }
+    .avatar-circle {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1.5px solid var(--gold);
+      background: #2b1d12;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .avatar-circle img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #3a2414, #1b1008);
+      border: 1.5px solid var(--gold);
+      color: var(--gold-light);
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.75);
+    }
+    .icon-btn:active { transform: scale(0.92); }
+
+    .home-control-dock {
+      position: relative;
+      z-index: 2;
+      margin-top: auto;
+      background: rgba(16, 10, 6, 0.92);
+      backdrop-filter: blur(8px);
+      border: 1.5px solid rgba(245, 197, 66, 0.42);
+      border-radius: 16px;
+      padding: 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 -10px 30px rgba(0,0,0,0.9);
+    }
+
+    .sheet-sync-pill {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(6, 78, 59, 0.45);
+      border: 1px solid rgba(52, 211, 153, 0.4);
+      border-radius: 8px;
+      padding: 4px 8px;
+      font-size: 10px;
+      color: #a7f3d0;
+    }
+
+    .section-label {
+      font-size: 9.5px;
+      font-weight: 800;
+      letter-spacing: 0.7px;
+      color: var(--gold-light);
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .players-setup-box {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .player-slot-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(245,197,66,0.3);
+      border-radius: 9px;
+      padding: 4px 8px;
+    }
+    .player-slot-row select {
+      background: #1c1109;
+      border: 1px solid #7c5227;
+      color: #fff;
+      border-radius: 6px;
+      padding: 5px 7px;
+      font-size: 11.5px;
+      font-weight: 700;
+      flex: 1;
+      outline: none;
+    }
+    .mini-btn {
+      background: linear-gradient(180deg, #4b301a, #28180b);
+      border: 1px solid var(--gold);
+      color: var(--gold-light);
+      border-radius: 6px;
+      padding: 5px 8px;
+      font-size: 10.5px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .mini-btn:active { transform: scale(0.95); }
+
+    .camp-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .camp-btn {
+      padding: 8px;
+      border-radius: 9px;
+      border: 2px solid rgba(255,255,255,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-family: 'Cinzel Decorative', cursive;
+      font-weight: 900;
+      font-size: 11.5px;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .camp-btn.bomoh {
+      background: linear-gradient(135deg, #064e3b, #022c22);
+      color: #a7f3d0;
+    }
+    .camp-btn.hantu {
+      background: linear-gradient(135deg, #7f1d1d, #3b0764);
+      color: #fecaca;
+    }
+    .camp-btn.selected.bomoh {
+      border-color: #34d399;
+      box-shadow: 0 0 14px rgba(16, 185, 129, 0.7);
+    }
+    .camp-btn.selected.hantu {
+      border-color: #f87171;
+      box-shadow: 0 0 14px rgba(239, 68, 68, 0.7);
+    }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+    .mode-pill {
+      background: #1f130b;
+      border: 1px solid #6b4423;
+      color: #d6bfa6;
+      padding: 6px 4px;
+      border-radius: 8px;
+      font-size: 10.5px;
+      font-weight: 700;
+      text-align: center;
+      cursor: pointer;
+    }
+    .mode-pill.active {
+      background: linear-gradient(180deg, #b8860b, #6b4423);
+      color: #fff;
+      border-color: var(--gold);
+    }
+
+    .btn-primary-start {
+      width: 100%;
+      padding: 12px;
+      border-radius: 11px;
+      border: 2px solid var(--gold-light);
+      background: linear-gradient(180deg, #eab308 0%, #a16207 50%, #713f12 100%);
+      color: #fff;
+      font-family: 'Cinzel Decorative', cursive;
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: 0.8px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.85);
+      cursor: pointer;
+    }
+    .btn-primary-start:active { transform: scale(0.97); }
+
+    .sub-btn-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .sub-nav-btn {
+      padding: 7px 4px;
+      border-radius: 8px;
+      background: linear-gradient(180deg, #362214, #1c1109);
+      border: 1px solid #8a5a2b;
+      color: var(--gold-light);
+      font-size: 10px;
+      font-weight: 800;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    /* ================= 2. SKRIN GELANGGANG PERTEMPURAN ================= */
+    #battle-screen {
+      background:
+        radial-gradient(circle at 50% 18%, rgba(88, 28, 135, 0.28), transparent 55%),
+        radial-gradient(circle at 50% 82%, rgba(6, 95, 70, 0.28), transparent 55%),
+        repeating-linear-gradient(90deg, #1a1009 0px, #1a1009 42px, #140c06 43px, #1f140c 84px);
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 6px 8px;
+      gap: 4px;
+    }
+    #battle-screen.active { display: flex; }
+
+    .battle-top-hud {
+      background: rgba(14, 9, 6, 0.94);
+      border: 1.5px solid rgba(245, 197, 66, 0.35);
+      border-radius: 11px;
+      padding: 5px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex-shrink: 0;
+      z-index: 5;
+    }
+
+    .hud-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .round-pill {
+      font-family: 'Cinzel Decorative', cursive;
+      font-size: 11px;
+      font-weight: 900;
+      color: var(--gold);
+      background: rgba(245, 197, 66, 0.12);
+      border: 1px solid rgba(245, 197, 66, 0.4);
+      padding: 2px 9px;
+      border-radius: 99px;
+    }
+
+    .versus-score-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 6px;
+    }
+    .player-hud-card {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0,0,0,0.55);
+      padding: 3px 6px;
+      border-radius: 7px;
+      border: 1px solid rgba(255,255,255,0.12);
+      min-width: 0;
+    }
+    .player-hud-card.right {
+      flex-direction: row-reverse;
+      text-align: right;
+    }
+    .hud-avatar-mini {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 1px solid var(--gold);
+      background: #2b1d12;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .hud-avatar-mini img { width: 100%; height: 100%; object-fit: cover; }
+    .hud-p-info {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      flex: 1;
+    }
+    .hud-p-name {
+      font-size: 10px;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .score-dots {
+      display: flex;
+      gap: 3px;
+      margin-top: 2px;
+    }
+    .player-hud-card.right .score-dots { justify-content: flex-end; }
+    .score-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #292524;
+      border: 1px solid #78716c;
+    }
+    .score-dot.won-bomoh {
+      background: #10b981;
+      border-color: #a7f3d0;
+      box-shadow: 0 0 5px #10b981;
+    }
+    .score-dot.won-hantu {
+      background: #ef4444;
+      border-color: #fecaca;
+      box-shadow: 0 0 5px #ef4444;
+    }
+
+    .weather-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      background: linear-gradient(90deg, rgba(59,7,100,0.5), rgba(120,53,15,0.6), rgba(59,7,100,0.5));
+      border: 1px solid rgba(245,197,66,0.25);
+      border-radius: 5px;
+      padding: 2px 6px;
+      font-size: 9.5px;
+      color: #fde68a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ================= MEJA TEMPUR 4 LALUAN ================= */
+    .arena-table {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-evenly;
+      padding: 6px;
+      border-radius: 12px;
+      background: rgba(18, 11, 6, 0.78);
+      border: 1.5px solid #5c3a1e;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.9);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .lane-titles {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      text-align: center;
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--gold-light);
+      letter-spacing: 0.5px;
+      flex-shrink: 0;
+    }
+
+    .board-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      align-items: center;
+      justify-items: center;
+    }
+
+    .lane-slot {
+      position: relative;
+      width: 100%;
+      max-width: 88px;
+      aspect-ratio: 5 / 7;
+      border-radius: 8px;
+      background: rgba(10, 6, 4, 0.85);
+      border: 1.5px dashed rgba(245, 197, 66, 0.32);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .lane-slot.bomoh-zone {
+      border-color: rgba(16, 185, 129, 0.45);
+      background: radial-gradient(circle, rgba(6,78,59,0.25), rgba(10,6,4,0.88));
+    }
+    .lane-slot.hantu-zone {
+      border-color: rgba(239, 68, 68, 0.45);
+      background: radial-gradient(circle, rgba(127,29,29,0.25), rgba(10,6,4,0.88));
+    }
+    .lane-slot.highlight-target {
+      border: 2px solid var(--gold);
+      box-shadow: 0 0 12px rgba(245, 197, 66, 0.65);
+    }
+    .lane-slot.recommended-slot {
+      border: 2px solid #38bdf8 !important;
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.85);
+    }
+    .lane-slot.active-battle-lane {
+      border: 2px solid #fff !important;
+      box-shadow: 0 0 18px var(--gold);
+      z-index: 8;
+    }
+    .lane-slot.synergy-active {
+      box-shadow: 0 0 12px #2dd4bf, inset 0 0 6px #2dd4bf;
+    }
+
+    .slot-placeholder-label {
+      font-size: 8.5px;
+      color: rgba(255,255,255,0.32);
+      text-align: center;
+      font-weight: 700;
+      padding: 3px;
+      line-height: 1.2;
+    }
+
+    .vs-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .vs-badge {
+      font-family: 'Cinzel Decorative', cursive;
+      font-size: 8.5px;
+      font-weight: 900;
+      padding: 1.5px 5px;
+      border-radius: 99px;
+      background: #1c1917;
+      border: 1px solid #57534e;
+      color: #d6d3d1;
+      margin: 0 auto;
+    }
+    .vs-badge.p1-win { background: #065f46; border-color: #34d399; color: #fff; }
+    .vs-badge.p2-win { background: #991b1b; border-color: #f87171; color: #fff; }
+
+    #reveal-banner-overlay {
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(15, 9, 5, 0.96);
+      border: 2px solid var(--gold);
+      border-radius: 12px;
+      padding: 10px 12px;
+      z-index: 25;
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.95);
+    }
+    #reveal-banner-overlay.show { display: flex; }
+
+    /* ================= 3. KOMPONEN KAD (SOKONG GAMBAR LAJUR A ATAU EMOJI) ================= */
+    .card-unit {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 7px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 3px;
+      overflow: hidden;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.85);
+      backface-visibility: hidden;
+      background-size: cover;
+      background-position: center;
+    }
+    .card-unit.flip-in {
+      animation: flipCard3D 0.6s ease forwards;
+    }
+    @keyframes flipCard3D {
+      0% { transform: perspective(400px) rotateY(90deg) scale(0.92); opacity: 0.3; }
+      100% { transform: perspective(400px) rotateY(0deg) scale(1); opacity: 1; }
+    }
+
+    .card-unit.camp-bomoh {
+      background-color: #064e3b;
+      background-image: linear-gradient(160deg, #065f46 0%, #022c22 65%, #14532d 100%);
+      border: 1.5px solid #34d399;
+    }
+    .card-unit.camp-hantu {
+      background-color: #450a0a;
+      background-image: linear-gradient(160deg, #7f1d1d 0%, #3b0764 65%, #450a0a 100%);
+      border: 1.5px solid #f87171;
+    }
+    .card-unit.type-equip.camp-bomoh {
+      background-color: #451a03;
+      background-image: linear-gradient(160deg, #78350f 0%, #451a03 100%);
+      border: 1.5px solid #fbbf24;
+    }
+    .card-unit.type-equip.camp-hantu {
+      background-color: #2e1065;
+      background-image: linear-gradient(160deg, #581c87 0%, #2e1065 100%);
+      border: 1.5px solid #c084fc;
+    }
+
+    .card-custom-img-layer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .card-unit.selected-in-hand {
+      border: 2px solid #fff !important;
+      box-shadow: 0 0 14px var(--gold);
+      transform: translateY(-4px);
+    }
+    .card-unit.suggested-in-hand {
+      border: 2px solid #38bdf8 !important;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.9);
+    }
+
+    .card-back-cover {
+      width: 100%;
+      height: 100%;
+      border-radius: 7px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      border: 1.5px solid var(--gold-dark);
+      background:
+        radial-gradient(circle, rgba(245,197,66,0.15), transparent 70%),
+        repeating-linear-gradient(45deg, #23150c 0px, #23150c 6px, #180e08 6px, #180e08 12px);
+    }
+    .card-back-cover.bomoh { border-color: #10b981; }
+    .card-back-cover.hantu { border-color: #ef4444; }
+    .card-back-emblem { font-size: 20px; }
+    .card-back-label {
+      font-family: 'Cinzel Decorative', cursive;
+      font-size: 7.5px;
+      color: var(--gold-light);
+    }
+
+    .card-top-stats {
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 2px;
+      z-index: 3;
+    }
+    .stat-pill {
+      font-size: 8.5px;
+      font-weight: 800;
+      padding: 1.5px 4px;
+      border-radius: 4px;
+      color: #fff;
+      line-height: 1.1;
+      transition: transform 0.3s, background-color 0.3s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    }
+    .stat-pill.atk { background: rgba(185, 28, 28, 0.94); border: 1px solid #fca5a5; }
+    .stat-pill.hp  { background: rgba(21, 128, 61, 0.94); border: 1px solid #86efac; }
+    .stat-pill.stat-pop-up {
+      animation: statPopPulse 0.65s ease;
+      background: #f59e0b !important;
+      border-color: #fff !important;
+      color: #000 !important;
+    }
+    @keyframes statPopPulse {
+      0% { transform: scale(1); }
+      45% { transform: scale(1.45); }
+      100% { transform: scale(1); }
+    }
+
+    .card-center-icon {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      min-height: 0;
+      z-index: 2;
+    }
+    .card-emoji-art {
+      font-size: 22px;
+      line-height: 1;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+    }
+    .card-role-tag {
+      font-size: 7px;
+      font-weight: 800;
+      color: #fde68a;
+      background: rgba(0,0,0,0.65);
+      padding: 1px 4px;
+      border-radius: 3px;
+      margin-top: 2px;
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-bottom-name {
+      position: relative;
+      background: rgba(0, 0, 0, 0.85);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 3px;
+      padding: 2px 3px;
+      text-align: center;
+      font-size: 8px;
+      font-weight: 800;
+      line-height: 1.1;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      z-index: 3;
+    }
+
+    .card-info-btn {
+      position: absolute;
+      top: 20px;
+      right: 2px;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.82);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      font-size: 8.5px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 6;
+    }
+
+    .equip-indicator-chip {
+      position: absolute;
+      top: 20px;
+      left: 2px;
+      background: linear-gradient(135deg, #f59e0b, #b45309);
+      border: 1px solid #fde68a;
+      color: #fff;
+      font-size: 7.5px;
+      font-weight: 900;
+      padding: 1px 3px;
+      border-radius: 3px;
+      z-index: 6;
+    }
+
+    .card-unit.defeated-greyscale {
+      filter: grayscale(100%) brightness(0.45) contrast(1.15);
+      border-color: #57534e !important;
+    }
+    .defeated-stamp {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.38);
+      z-index: 9;
+      pointer-events: none;
+    }
+    .defeated-stamp span {
+      border: 1.5px solid #ef4444;
+      background: rgba(127, 29, 29, 0.92);
+      color: #fecaca;
+      font-family: 'Cinzel Decorative', cursive;
+      font-size: 8.5px;
+      font-weight: 900;
+      padding: 1px 4px;
+      border-radius: 3px;
+      transform: rotate(-14deg);
+    }
+
+    .winner-crown-badge {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(6, 95, 70, 0.94);
+      border: 1px solid #34d399;
+      color: #a7f3d0;
+      font-size: 7.5px;
+      font-weight: 900;
+      padding: 1.5px 4px;
+      border-radius: 3px;
+      z-index: 9;
+      white-space: nowrap;
+    }
+
+    /* ================= 4. POP-UP KECIL CADANGAN EQUIP PINTAR ================= */
+    #equip-advisor-popup {
+      background: linear-gradient(135deg, rgba(12, 74, 110, 0.96), rgba(7, 89, 133, 0.94));
+      border: 1.5px solid #38bdf8;
+      border-radius: 10px;
+      padding: 6px 8px;
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.85);
+    }
+    #equip-advisor-popup.show { display: flex; }
+    .advisor-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+    .advisor-title {
+      font-size: 10px;
+      font-weight: 800;
+      color: #bae6fd;
+    }
+    .advisor-body-txt {
+      font-size: 10.5px;
+      line-height: 1.35;
+      color: #f0f9ff;
+      font-weight: 600;
+    }
+    .advisor-body-txt strong { color: #fde047; }
+
+    /* ================= 5. PANEL KAWALAN TANGAN BAWAH ================= */
+    .battle-bottom-hud {
+      background: rgba(15, 9, 5, 0.96);
+      border: 1.5px solid rgba(245, 197, 66, 0.4);
+      border-radius: 12px;
+      padding: 7px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      flex-shrink: 0;
+      z-index: 5;
+    }
+
+    .phase-info-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 4px;
+    }
+    .phase-text {
+      font-size: 10.5px;
+      font-weight: 800;
+      color: var(--gold-light);
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .hand-cards-scroller {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 5px 2px 3px;
+      height: 102px;
+      align-items: center;
+      scrollbar-width: none;
+    }
+    .hand-cards-scroller::-webkit-scrollbar { display: none; }
+
+    .hand-slot-item {
+      flex: 0 0 68px;
+      height: 94px;
+      cursor: pointer;
+    }
+
+    .bottom-action-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .btn-secondary-act {
+      padding: 9px 10px;
+      border-radius: 9px;
+      border: 1.5px solid #8a5a2b;
+      background: linear-gradient(180deg, #3a2312, #1c1008);
+      color: #fed7aa;
+      font-weight: 800;
+      font-size: 10.5px;
+      cursor: pointer;
+    }
+    .btn-confirm-act {
+      flex: 1;
+      padding: 10px;
+      border-radius: 9px;
+      border: 1.5px solid var(--gold);
+      background: linear-gradient(180deg, #15803d, #14532d);
+      color: #fff;
+      font-family: 'Cinzel Decorative', cursive;
+      font-weight: 900;
+      font-size: 11.5px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.8);
+    }
+    .btn-clash-red {
+      flex: 1;
+      padding: 11px;
+      border-radius: 9px;
+      border: 2px solid #fde047;
+      background: linear-gradient(180deg, #dc2626, #7f1d1d);
+      color: #fff;
+      font-family: 'Cinzel Decorative', cursive;
+      font-weight: 900;
+      font-size: 13px;
+      letter-spacing: 0.8px;
+      cursor: pointer;
+      box-shadow: 0 0 18px rgba(239, 68, 68, 0.8);
+      animation: pulseRedBtn 1.2s infinite alternate;
+    }
+    @keyframes pulseRedBtn {
+      from { transform: scale(1); }
+      to { transform: scale(1.02); box-shadow: 0 0 24px rgba(250, 204, 21, 0.95); }
+    }
+
+    /* ================= 6. PENTAS DUEL TENGAH SKRIN (FULL-SIZE STACKED EQUIP + SPARKLE) ================= */
+    #duel-theater-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(5, 3, 2, 0.94);
+      backdrop-filter: blur(6px);
+      z-index: 40;
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+    }
+    #duel-theater-overlay.active { display: flex; }
+
+    .duel-header-banner {
+      text-align: center;
+      background: rgba(30, 18, 10, 0.95);
+      border: 1.5px solid var(--gold);
+      border-radius: 99px;
+      padding: 6px 18px;
+      font-family: 'Cinzel Decorative', cursive;
+      font-size: 13px;
+      color: var(--gold);
+    }
+
+    .duel-cards-stage {
+      position: relative;
+      width: 100%;
+      height: 330px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .duel-card-holder {
+      position: absolute;
+      width: 146px;
+      height: 204px;
+      transition: all 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .duel-card-holder.pos-left {
+      transform: translate(-76px, -24px) rotate(-3deg);
+      z-index: 5;
+    }
+    .duel-card-holder.pos-right {
+      transform: translate(76px, -24px) rotate(3deg);
+      z-index: 5;
+    }
+    .duel-card-holder.clash-left {
+      transform: translate(-26px, -18px) scale(1.06) rotate(4deg);
+      z-index: 12;
+    }
+    .duel-card-holder.clash-right {
+      transform: translate(26px, -18px) scale(1.06) rotate(-4deg);
+      z-index: 12;
+    }
+    .duel-card-holder.winner-front {
+      transform: translate(0px, -22px) scale(1.15) rotate(0deg) !important;
+      z-index: 20 !important;
+      filter: drop-shadow(0 0 24px rgba(245, 197, 66, 0.95));
+    }
+    .duel-card-holder.loser-back {
+      transform: translate(62px, 18px) scale(0.82) rotate(10deg) !important;
+      z-index: 4 !important;
+      filter: grayscale(100%) brightness(0.45);
+      opacity: 0.85;
+    }
+
+    /* Kad Equip Saiz Penuh Bertindih Di Atas Kad Watak (Offset Ke Bawah Supaya Stat Watak Di Atas Masih Kelihatan!) */
+    .stacked-full-equip-card {
+      position: absolute;
+      left: 0;
+      top: 52px; /* Turun ke bawah supaya bahagian atas kad watak (ATK/HP & ikon) masih jelas kelihatan */
+      width: 100%;
+      height: 100%;
+      z-index: 8;
+      border-radius: 7px;
+      box-shadow: 0 -6px 18px rgba(0,0,0,0.95), 0 0 20px rgba(245, 197, 66, 0.85);
+      animation: slideUpEquipStack 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes slideUpEquipStack {
+      0% { transform: translateY(90px) scale(0.75); opacity: 0; }
+      70% { transform: translateY(-4px) scale(1.03); opacity: 1; }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
+
+    /* Efek Shining & Sparkle Semasa Kad Equip dan Kad Watak Bersatu */
+    .fusion-sparkle-ring {
+      position: absolute;
+      inset: -16px;
+      border-radius: 14px;
+      pointer-events: none;
+      z-index: 25;
+      background: radial-gradient(circle, rgba(253,224,71,0.85) 0%, rgba(245,158,11,0.4) 45%, transparent 72%);
+      animation: sparkleBurstAnim 0.95s ease-out forwards;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+    }
+    @keyframes sparkleBurstAnim {
+      0% { transform: scale(0.4); opacity: 0; }
+      40% { transform: scale(1.18); opacity: 1; }
+      100% { transform: scale(1.45); opacity: 0; }
+    }
+
+    .card-unit.fusion-glow {
+      box-shadow: 0 0 25px #fde047, inset 0 0 15px #fde047 !important;
+      border-color: #fff !important;
+    }
+
+    .clash-burst-fx {
+      position: absolute;
+      font-size: 52px;
+      z-index: 30;
+      pointer-events: none;
+      animation: burstPop 0.55s ease-out forwards;
+    }
+    @keyframes burstPop {
+      0% { transform: scale(0.3); opacity: 0; }
+      45% { transform: scale(1.35); opacity: 1; }
+      100% { transform: scale(1.6); opacity: 0; }
+    }
+
+    .duel-log-panel {
+      width: 100%;
+      background: #f5e6c8;
+      color: #271509;
+      border: 2.5px solid #9c6b19;
+      border-radius: 13px;
+      padding: 11px;
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .duel-log-lines {
+      font-size: 11.5px;
+      line-height: 1.45;
+      font-weight: 600;
+    }
+    .duel-log-lines strong { color: #7c2d12; }
+
+    .countdown-bar-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      border-top: 1px solid rgba(124,45,18,0.2);
+      padding-top: 6px;
+    }
+    .timer-progress-bg {
+      flex: 1;
+      height: 8px;
+      background: #d6c19a;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .timer-progress-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #15803d, #eab308, #dc2626);
+      transition: width 0.25s linear;
+    }
+
+    /* ================= 7. MODAL UMUM & ANIMASI RANKING ================= */
+    .modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.86);
+      backdrop-filter: blur(5px);
+      z-index: 60;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal-card {
+      width: 100%;
+      max-height: 88%;
+      background: linear-gradient(180deg, #2e1c10, #160d07);
+      border: 2px solid var(--gold);
+      border-radius: 16px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.95);
+      overflow: hidden;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(245,197,66,0.25);
+      padding-bottom: 6px;
+    }
+    .modal-title {
+      font-family: 'Cinzel Decorative', cursive;
+      font-size: 13.5px;
+      color: var(--gold);
+    }
+    .scroll-body {
+      flex: 1;
+      overflow-y: auto;
+      background: #f4e4c6;
+      color: #261509;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .scroll-body h4 {
+      font-family: 'Cinzel Decorative', cursive;
+      color: #7c2d12;
+      margin: 8px 0 4px;
+      font-size: 12.5px;
+    }
+    .scroll-body h4:first-child { margin-top: 0; }
+    .scroll-body ul { padding-left: 16px; margin-bottom: 6px; }
+
+    /* Trofi + Avatar Pemenang Bersebelahan */
+    .winner-trophy-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: 4px 0;
+    }
+    .winner-avatar-trophy {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 2.5px solid var(--gold);
+      background: #2b1d12;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      overflow: hidden;
+      box-shadow: 0 0 18px rgba(245, 197, 66, 0.75);
+    }
+    .winner-avatar-trophy img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Animasi Pergerakan Naik / Turun Ranking */
+    .roster-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 240px;
+      overflow-y: auto;
+    }
+    .roster-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid #b08954;
+      border-radius: 8px;
+      padding: 6px 8px;
+      transition: transform 0.4s ease;
+    }
+    .roster-item.rank-up-highlight {
+      background: linear-gradient(90deg, #fef08a, #bbf7d0);
+      border: 2px solid #15803d;
+      box-shadow: 0 0 15px rgba(21, 128, 61, 0.45);
+      animation: rankUpSlide 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .roster-item.rank-down-highlight {
+      background: linear-gradient(90deg, #fee2e2, #fecaca);
+      border: 1.5px solid #b91c1c;
+      animation: rankDownSlide 0.8s ease;
+    }
+    @keyframes rankUpSlide {
+      0% { transform: translateY(28px) scale(0.95); opacity: 0.3; }
+      60% { transform: translateY(-5px) scale(1.03); opacity: 1; }
+      100% { transform: translateY(0) scale(1); }
+    }
+    @keyframes rankDownSlide {
+      0% { transform: translateY(-24px); opacity: 0.4; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    .rank-delta-badge {
+      display: inline-block;
+      font-size: 9.5px;
+      font-weight: 900;
+      padding: 1px 5px;
+      border-radius: 99px;
+      margin-left: 4px;
+    }
+    .rank-delta-badge.up { background: #15803d; color: #fff; }
+    .rank-delta-badge.down { background: #b91c1c; color: #fff; }
+
+    .new-title-banner {
+      background: linear-gradient(135deg, #78350f, #451a03);
+      border: 2px solid var(--gold);
+      color: #fff;
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 10px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(245, 197, 66, 0.5);
+      animation: popInTitle 0.6s ease;
+    }
+    @keyframes popInTitle {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .roster-item-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .camera-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0,0,0,0.12);
+      padding: 8px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+    #camera-video {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #7c2d12;
+      background: #000;
+      display: none;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      overflow-y: auto;
+      max-height: 58vh;
+      padding: 4px;
+    }
+    .gallery-cell {
+      aspect-ratio: 5 / 7;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div id="app-frame">
+
+  <!-- Audio BGM MP3 daripada Google Drive -->
+  <audio id="bgm-audio-el" loop preload="auto" crossorigin="anonymous">
+    <source src="https://docs.google.com/uc?export=download&id=1OyhCHHQKveBM0s8Twm992IRHb2wu5x0w" type="audio/mpeg">
+    <source src="https://drive.google.com/uc?export=view&id=1OyhCHHQKveBM0s8Twm992IRHb2wu5x0w" type="audio/mpeg">
+  </audio>
+
+  <!-- Skrin Sentuhan Pertama supaya Pelayar Telefon Terus Mainkan Muzik -->
+  <div id="splash-audio-gate" onclick="enterGameWithAudio()">
+    <div class="splash-badge">🗡️👻</div>
+    <h2 style="font-family:'Cinzel Decorative',cursive;color:var(--gold);font-size:20px;margin-bottom:6px;">BOMOH VS HANTU</h2>
+    <p style="font-size:12px;color:#fde68a;max-width:290px;line-height:1.5;margin-bottom:18px;">
+      Edisi Playtest V4 • Integrasi Google Sheets Live + Cantuman Equip Penuh & Sistem 10 Gelaran
+    </p>
+    <button class="btn-primary-start" style="max-width:250px;">🔊 KETUK UNTUK MULA</button>
+  </div>
+
+  <!-- ================= SKRIN 1: HOME MENU ================= -->
+  <section id="home-screen" class="screen active">
+    <div class="top-nav">
+      <div class="active-user-pill" onclick="openRosterModal(1)">
+        <div class="avatar-circle" id="home-p1-avatar">🧙‍♂️</div>
+        <div>
+          <div id="home-p1-name" style="font-weight:800;font-size:12px;color:#fff;">Edie</div>
+          <div style="font-size:10px;color:var(--gold);"><span id="home-p1-rank">Perawat Kampung</span> • <strong id="home-p1-pt">1050 Pt</strong></div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:6px;">
+        <button class="icon-btn" id="bgm-btn-home" onclick="toggleMusic()" title="Muzik Latar">🔊</button>
+        <button class="icon-btn" onclick="downloadStandaloneHTML()" title="Muat Turun Fail HTML Untuk Telefon">⬇️</button>
+      </div>
+    </div>
+
+    <div class="home-control-dock">
+      <div class="sheet-sync-pill">
+        <span id="sheet-sync-status">📊 Data Kad: Tersambung ke Google Sheets</span>
+        <button class="mini-btn" style="padding:2px 6px;font-size:9.5px;" onclick="syncFromGoogleSpreadsheet(true)">🔄 Sync Sheet</button>
+      </div>
+
+      <div class="section-label">AKAUN PEMAIN (SIMPANAN OFFLINE MAKS 20 PEMAIN)</div>
+
+      <div class="players-setup-box">
+        <div class="player-slot-row">
+          <span style="font-size:11px;font-weight:800;color:var(--gold);width:26px;">P1:</span>
+          <select id="select-p1-account" onchange="onSelectAccount(1, this.value)"></select>
+          <button class="mini-btn" onclick="openRosterModal(1)">📷/✏️ Urus</button>
+        </div>
+
+        <div class="player-slot-row" id="p2-setup-row" style="display:none;">
+          <span style="font-size:11px;font-weight:800;color:#f87171;width:26px;">P2:</span>
+          <select id="select-p2-account" onchange="onSelectAccount(2, this.value)"></select>
+          <button class="mini-btn" onclick="openRosterModal(2)">📷/✏️ Tukar Nama</button>
+        </div>
+      </div>
+
+      <div class="section-label">PILIH KEM PEMAIN 1</div>
+      <div class="camp-grid">
+        <div id="btn-camp-bomoh" class="camp-btn bomoh selected" onclick="chooseCamp('bomoh')">🗡️ KEM BOMOH</div>
+        <div id="btn-camp-hantu" class="camp-btn hantu" onclick="chooseCamp('hantu')">👻 KEM HANTU</div>
+      </div>
+
+      <div class="mode-grid">
+        <div id="mode-tab-bot" class="mode-pill active" onclick="chooseMode('bot')">🤖 Lawan Bot</div>
+        <div id="mode-tab-pass" class="mode-pill" onclick="chooseMode('pass')">📱 2 Pemain</div>
+        <div id="mode-tab-online" class="mode-pill" onclick="chooseMode('online')">🌐 Bilik Online</div>
+      </div>
+
+      <button class="btn-primary-start" onclick="startGameMatch()">⚔️ MULA PERMAINAN</button>
+
+      <div class="sub-btn-grid">
+        <div class="sub-nav-btn" onclick="openModal('rules-modal')">📜 CARA MAIN</div>
+        <div class="sub-nav-btn" onclick="openRosterModal(1)">👥 20 PEMAIN</div>
+        <div class="sub-nav-btn" onclick="openGalleryModal()">🃏 80 KAD</div>
+        <div class="sub-nav-btn" onclick="openLeaderboardModal()">🏆 RANKING</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SKRIN 2: GELANGGANG PERTEMPURAN ================= -->
+  <section id="battle-screen" class="screen">
+    <div class="battle-top-hud">
+      <div class="hud-header-bar">
+        <button class="mini-btn" onclick="confirmBackToHome()">⬅️ Menu</button>
+        <div class="round-pill" id="hud-round-label">PUSINGAN 1 / 5</div>
+        <div style="display:flex;gap:4px;align-items:center;">
+          <button class="mini-btn" id="btn-toggle-advisor" onclick="toggleAdvisorSetting()" style="border-color:#38bdf8;color:#bae6fd;">💡 AI: ON</button>
+          <button class="icon-btn" id="bgm-btn-battle" style="width:26px;height:26px;font-size:12px;" onclick="toggleMusic()">🔊</button>
+        </div>
+      </div>
+
+      <div class="versus-score-row">
+        <div class="player-hud-card" id="hud-p1-box">
+          <div class="hud-avatar-mini" id="hud-p1-av">🧙‍♂️</div>
+          <div class="hud-p-info">
+            <div class="hud-p-name" id="hud-p1-name">Edie (BOMOH)</div>
+            <div class="score-dots" id="hud-p1-dots"></div>
+          </div>
+        </div>
+
+        <div style="font-family:'Cinzel Decorative',cursive;font-size:10px;color:var(--gold);font-weight:900;" id="hud-deck-count">16W|18E</div>
+
+        <div class="player-hud-card right" id="hud-p2-box">
+          <div class="hud-avatar-mini" id="hud-p2-av">👹</div>
+          <div class="hud-p-info">
+            <div class="hud-p-name" id="hud-p2-name">Bot (HANTU)</div>
+            <div class="score-dots" id="hud-p2-dots"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="weather-bar" id="hud-weather-bar">
+        <span>🌕</span>
+        <strong id="weather-title">Malam Jumaat Kliwon:</strong>
+        <span id="weather-effect">Semua Hantu +100 ATK</span>
+      </div>
+    </div>
+
+    <!-- Meja 4 Laluan -->
+    <div class="arena-table">
+      <div class="lane-titles">
+        <div>LALUAN 1</div>
+        <div>LALUAN 2</div>
+        <div>LALUAN 3</div>
+        <div>LALUAN 4</div>
+      </div>
+
+      <div class="board-row" id="board-top-row"></div>
+
+      <div class="vs-row">
+        <div class="vs-badge" id="vs-pill-0">VS</div>
+        <div class="vs-badge" id="vs-pill-1">VS</div>
+        <div class="vs-badge" id="vs-pill-2">VS</div>
+        <div class="vs-badge" id="vs-pill-3">VS</div>
+      </div>
+
+      <div class="board-row" id="board-bottom-row"></div>
+
+      <!-- Banner Pendedahan Watak (5 Saat Hantu -> 5 Saat Bomoh) -->
+      <div id="reveal-banner-overlay">
+        <div style="font-family:'Cinzel Decorative',cursive;font-size:13px;color:var(--gold);" id="reveal-banner-title">MENDEDAHKAN KAD WATAK HANTU...</div>
+        <div style="font-size:11.5px;color:#fde68a;" id="reveal-banner-sub">Perhatikan barisan musuh di Laluan 1 hingga 4! (5s)</div>
+        <div class="countdown-bar-wrap" style="border-top:none;padding-top:2px;">
+          <div class="timer-progress-bg">
+            <div class="timer-progress-fill" id="reveal-timer-bar"></div>
+          </div>
+          <button class="mini-btn" onclick="skipWaitPhase()">Teruskan ⏩</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- POP-UP KECIL CADANGAN EQUIP AI YANG TEPAT & LOGIK -->
+    <div id="equip-advisor-popup">
+      <div class="advisor-top-row">
+        <div class="advisor-title">💡 CADANGAN TAKTIKAL AI</div>
+        <div style="display:flex;gap:4px;">
+          <button class="mini-btn" id="btn-apply-suggestion" style="background:#0284c7;border-color:#bae6fd;color:#fff;padding:3px 7px;font-size:9.5px;" onclick="applyRecommendedEquip()">⚡ Pasang Cadangan</button>
+          <button class="mini-btn" style="padding:3px 6px;font-size:9.5px;" onclick="nextEquipSuggestion()">🔄 Pilihan Lain</button>
+        </div>
+      </div>
+      <div class="advisor-body-txt" id="advisor-suggestion-text">
+        Menganalisis pertempuran 4 laluan...
+      </div>
+    </div>
+
+    <!-- Kawalan Tangan Bawah -->
+    <div class="battle-bottom-hud">
+      <div class="phase-info-bar">
+        <div class="phase-text" id="hud-phase-instruction">Fasa 1: Pilih 4 Kad Watak (Tertutup)</div>
+        <button class="mini-btn" id="btn-auto-pick" onclick="autoPickCards()">⚡ Pilih Pantas</button>
+      </div>
+
+      <div class="hand-cards-scroller" id="hand-strip"></div>
+
+      <div class="bottom-action-row">
+        <button class="btn-secondary-act" id="btn-clear-slots" onclick="clearCurrentSlots()">🔄 Reset</button>
+        <button class="btn-confirm-act" id="btn-confirm-turn" onclick="confirmTurnStep()">✅ SAHKAN WATAK</button>
+        <button class="btn-clash-red" id="btn-start-clash" style="display:none;" onclick="startSequentialBattle()">🔥 SERANG! (MULA TEMPUR)</button>
+      </div>
+    </div>
+
+    <!-- ================= TEATER PERTEMPURAN SINEMATIK TENGAH SKRIN (5s WATAK -> 5s EQUIP STACK -> 10s KEPUTUSAN) ================= -->
+    <div id="duel-theater-overlay">
+      <div class="duel-header-banner" id="duel-stage-title">PERTEMPURAN LALUAN 1</div>
+
+      <div class="duel-cards-stage" id="duel-cards-stage">
+        <div class="duel-card-holder pos-left" id="duel-holder-hantu"></div>
+        <div class="duel-card-holder pos-right" id="duel-holder-bomoh"></div>
+        <div id="duel-clash-fx-spot"></div>
+      </div>
+
+      <div class="duel-log-panel">
+        <div class="duel-log-lines" id="duel-narrative-box">
+          Bersedia untuk pertempuran...
+        </div>
+        <div class="countdown-bar-wrap" id="duel-countdown-row" style="display:none;">
+          <span style="font-size:11px;font-weight:800;color:#7c2d12;" id="duel-timer-label">5s</span>
+          <div class="timer-progress-bg">
+            <div class="timer-progress-fill" id="duel-timer-bar"></div>
+          </div>
+          <button class="mini-btn" onclick="skipWaitPhase()">Teruskan ⏩</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MODAL 1: URUS 20 PEMAIN OFFLINE & KAMERA SELFIE ================= -->
+  <div id="roster-modal" class="modal-overlay" onclick="closeOnBackdrop(event, 'roster-modal')">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">👥 AKAUN PEMAIN OFFLINE (MAKS 20)</div>
+        <button class="mini-btn" onclick="closeModal('roster-modal')">✕</button>
+      </div>
+
+      <div class="scroll-body">
+        <div style="background:#e6cfa3;padding:8px;border-radius:8px;margin-bottom:10px;border:1px solid #a37c40;">
+          <h4 style="margin-top:0;">➕ DAFTAR / KEMAS KINI PEMAIN (<span id="roster-count-lbl">1/20</span>)</h4>
+          <div class="camera-box">
+            <div class="avatar-circle" id="preview-new-avatar" style="width:52px;height:52px;font-size:22px;">🧙‍♂️</div>
+            <video id="camera-video" autoplay playsinline muted></video>
+            <canvas id="camera-canvas" width="96" height="96" style="display:none;"></canvas>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">
+              <button class="mini-btn" onclick="startSelfieCamera()">📷 Kamera Muka</button>
+              <button class="mini-btn" id="btn-snap-cam" style="display:none;background:#15803d;" onclick="captureLowResSelfie()">📸 Tangkap</button>
+              <button class="mini-btn" onclick="clearAvatarDraft()">🗑️ Reset Ikon</button>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:6px;">
+            <input type="text" id="input-new-player-name" placeholder="Taip nama pemain..." maxlength="15" style="flex:1;padding:7px;border-radius:6px;border:1px solid #7c2d12;font-weight:700;" />
+            <button class="mini-btn" style="background:#15803d;color:#fff;" onclick="saveOrAddPlayerToRoster()">💾 Simpan</button>
+          </div>
+        </div>
+
+        <h4>SENARAI AKAUN TERSIMPAN</h4>
+        <div class="roster-list" id="roster-accounts-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL 2: TIRAI PASS & PLAY ================= -->
+  <div id="pass-modal" class="modal-overlay">
+    <div class="modal-card" style="text-align:center;align-items:center;">
+      <div style="font-size:42px;">📱🔄🛡️</div>
+      <div class="modal-title" id="pass-modal-title" style="font-size:16px;">SERAHKAN TELEFON</div>
+      <p id="pass-modal-desc" style="font-size:12px;color:#fde68a;line-height:1.5;">
+        Sila serahkan telefon kepada pemain seterusnya!
+      </p>
+      <button class="btn-primary-start" style="margin-top:6px;" onclick="closePassModal()">✋ SAYA SEDIA (BUKA SKRIN)</button>
+    </div>
+  </div>
+
+  <!-- ================= MODAL 3: CARA BERMAIN ================= -->
+  <div id="rules-modal" class="modal-overlay" onclick="closeOnBackdrop(event, 'rules-modal')">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">📜 ALIRAN PERMAINAN RASMI (V4)</div>
+        <button class="mini-btn" onclick="closeModal('rules-modal')">✕</button>
+      </div>
+      <div class="scroll-body">
+        <h4>1. SUSUN 4 WATAK TERTUTUP & REVEAL (5S + 5S)</h4>
+        <ul>
+          <li>Kedua-dua pemain menyusun <strong>4 Kad Watak</strong> secara tertutup.</li>
+          <li>Semua Watak <strong>Hantu</strong> flip terbuka (5 saat) ➔ diikuti Watak <strong>Bomoh</strong> flip terbuka (5 saat).</li>
+          <li>Selepas kedua-dua barisan watak terbuka, notifikasi keluar untuk menyerahkan telefon kepada <strong>Pemain 1</strong> bagi memilih Kad Equip secara rahsia.</li>
+        </ul>
+        <h4>2. PILIH KAD EQUIP RAHSIA + CADANGAN AI LOGIK</h4>
+        <ul>
+          <li>Pemain memilih maksimum <strong>2 Kad Equip</strong> secara tersembunyi.</li>
+          <li><strong>Cadangan AI:</strong> Menganalisis formula sebenar (Cuaca + Sinergi + Kesan Equip) dan mencadangkan langkah yang menukar laluan Kalah/Seri menjadi Menang!</li>
+        </ul>
+        <h4>3. PERTEMPURAN TENGAH SKRIN (5S WATAK ➔ 5S CANTUM EQUIP ➔ 10S KEPUTUSAN)</h4>
+        <ul>
+          <li><strong>5 Saat Pertama:</strong> Kedua-dua Kad Watak dipaparkan di tengah skrin untuk bacaan pemain.</li>
+          <li><strong>5 Saat Kedua:</strong> Kad Equip saiz penuh meluncur di atas Kad Watak (sedikit ke bawah) dengan efek kilauan <em>sparkle</em>, dan nilai ⚔️ ATK serta 🛡️ HP berubah secara langsung!</li>
+          <li><strong>10 Saat Keputusan:</strong> Kedua-dua kad berlaga, kad menang tampil di hadapan dan kad kalah menjadi <em>greyscale</em> di belakang.</li>
+        </ul>
+      </div>
+      <button class="btn-confirm-act" onclick="closeModal('rules-modal')">FAHAM & TUTUP</button>
+    </div>
+  </div>
+
+  <!-- ================= MODAL 4: ZUM BUTIRAN KAD ================= -->
+  <div id="inspect-modal" class="modal-overlay" onclick="closeOnBackdrop(event, 'inspect-modal')">
+    <div class="modal-card" style="max-width:300px;align-items:center;text-align:center;">
+      <div style="width:160px;height:224px;" id="inspect-card-holder"></div>
+      <div class="scroll-body" style="width:100%;">
+        <h4 id="inspect-name" style="font-size:14px;margin-top:0;"></h4>
+        <div id="inspect-stats" style="font-weight:800;color:#065f46;margin:4px 0;"></div>
+        <p id="inspect-desc"></p>
+      </div>
+      <button class="btn-confirm-act" style="width:100%;" onclick="closeModal('inspect-modal')">TUTUP</button>
+    </div>
+  </div>
+
+  <!-- ================= MODAL 5: GALERI 80 KAD ================= -->
+  <div id="gallery-modal" class="modal-overlay" onclick="closeOnBackdrop(event, 'gallery-modal')">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">🃏 GALERI 80 KAD (LIVE SPREADSHEET)</div>
+        <button class="mini-btn" onclick="closeModal('gallery-modal')">✕</button>
+      </div>
+      <div class="mode-grid" style="grid-template-columns:repeat(4,1fr);">
+        <div id="gtab-wb" class="mode-pill active" onclick="renderGalleryTab('wb')">Watak Bomoh</div>
+        <div id="gtab-eb" class="mode-pill" onclick="renderGalleryTab('eb')">Equip Bomoh</div>
+        <div id="gtab-wh" class="mode-pill" onclick="renderGalleryTab('wh')">Watak Hantu</div>
+        <div id="gtab-eh" class="mode-pill" onclick="renderGalleryTab('eh')">Equip Hantu</div>
+      </div>
+      <div class="gallery-grid" id="gallery-grid-box"></div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL 6: PAPAN RANKING POINTS (Pt) & 10 GELARAN ================= -->
+  <div id="leaderboard-modal" class="modal-overlay" onclick="closeOnBackdrop(event, 'leaderboard-modal')">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">🏆 PAPAN RANKING & GELARAN (Pt)</div>
+        <button class="mini-btn" onclick="closeLeaderboardModal()">✕</button>
+      </div>
+      <div class="scroll-body" id="leaderboard-body"></div>
+      <button class="btn-primary-start" id="leaderboard-home-btn" style="display:none;" onclick="returnHomeFromLeaderboard()">🏠 KEMBALI KE MENU UTAMA</button>
+    </div>
+  </div>
+
+  <!-- ================= MODAL 7: KEPUTUSAN PUSINGAN (DENGAN AVATAR DI SEBELAH TROFI) ================= -->
+  <div id="round-result-modal" class="modal-overlay">
+    <div class="modal-card" style="text-align:center;">
+      <div class="winner-trophy-header">
+        <div id="round-res-icon" style="font-size:44px;">🏆</div>
+        <div class="winner-avatar-trophy" id="round-res-avatar">🧙‍♂️</div>
+      </div>
+      <div class="modal-title" id="round-res-title" style="font-size:16px;">KEPUTUSAN PUSINGAN 1</div>
+      <div class="scroll-body" id="round-res-summary" style="text-align:left;"></div>
+      <button class="btn-primary-start" id="round-res-next-btn">PUSINGAN SETERUSNYA ➔</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* =========================================================================
+   1. SISTEM 10 GELARAN RASMI (KEM BOMOH & KEM HANTU)
+   ========================================================================= */
+let RANK_TIERS = [
+  { level: 1, minPt: 0,    maxPt: 999,  bomohTitle: 'Murid Peneroka',      hantuTitle: 'Roh Sesat' },
+  { level: 2, minPt: 1000, maxPt: 1099, bomohTitle: 'Perawat Kampung',     hantuTitle: 'Pelesit Tumpang' },
+  { level: 3, minPt: 1100, maxPt: 1199, bomohTitle: 'Pawang Muda',         hantuTitle: 'Pocong Kubur' },
+  { level: 4, minPt: 1200, maxPt: 1349, bomohTitle: 'Ahli Ruqyah',         hantuTitle: 'Langsuir Malam' },
+  { level: 5, minPt: 1350, maxPt: 1499, bomohTitle: 'Dukun Istana',        hantuTitle: 'Toyol Beraja' },
+  { level: 6, minPt: 1500, maxPt: 1699, bomohTitle: 'Tabib Agung',         hantuTitle: 'Penanggal Darah' },
+  { level: 7, minPt: 1700, maxPt: 1999, bomohTitle: 'Pendekar Keris Emas', hantuTitle: 'Jembalang Tanah' },
+  { level: 8, minPt: 2000, maxPt: 2399, bomohTitle: 'Panglima Batin',      hantuTitle: 'Hantu Raya Kergasi' },
+  { level: 9, minPt: 2400, maxPt: 2899, bomohTitle: 'Tok Guru Besar',      hantuTitle: 'Raja Saka Hitam' },
+  { level: 10, minPt: 2900, maxPt: 99999, bomohTitle: 'Mahaguru Nusantara', hantuTitle: 'Penguasa Alam Ghaib' }
+];
+
+function getTierObject(pt) {
+  const cleanPt = Math.max(0, Number(pt) || 0);
+  for (let i = RANK_TIERS.length - 1; i >= 0; i--) {
+    if (cleanPt >= RANK_TIERS[i].minPt) return RANK_TIERS[i];
+  }
+  return RANK_TIERS[0];
+}
+
+function getRankLabel(pt, camp = 'bomoh') {
+  const tier = getTierObject(pt);
+  return camp === 'hantu' ? tier.hantuTitle : tier.bomohTitle;
+}
+
+/* =========================================================================
+   2. PANGKALAN DATA ASAL & LIVE SYNC DARIPADA GOOGLE SPREADSHEET (TERMASUK LAJUR A GAMBAR)
+   ========================================================================= */
+const SPREADSHEET_ID = '1Vpom-AnKypyscvv1AT97tO1WOb7HWoQ3fTjzBOL0Xic';
+const HOME_BG_ID     = '1jBKjsoyn77gRfWsbdTH901oqlBG3KSWx';
+
+function applyHomeBackground() {
+  const homeEl = document.getElementById('home-screen');
+  const primaryUrl = `https://drive.google.com/thumbnail?id=${HOME_BG_ID}&sz=w1200`;
+  const backupUrl  = `https://lh3.googleusercontent.com/d/${HOME_BG_ID}=w1200`;
+  const img = new Image();
+  img.onload = () => { homeEl.style.backgroundImage = `url('${primaryUrl}')`; };
+  img.onerror = () => { homeEl.style.backgroundImage = `url('${backupUrl}')`; };
+  img.src = primaryUrl;
+}
+
+// Tukar pautan Google Drive biasa di Lajur A kepada pautan imej langsung secara automatik
+function normalizeImageUrl(rawUrl) {
+  if (!rawUrl || typeof rawUrl !== 'string') return '';
+  const trimmed = rawUrl.trim();
+  if (!trimmed.startsWith('http')) return '';
+  const driveMatch = trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/) || trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (driveMatch && driveMatch[1]) {
+    return `https://drive.google.com/thumbnail?id=${driveMatch[1]}&sz=w600`;
+  }
+  return trimmed;
+}
+
+let WATAK_BOMOH = [
+  { id: 'wb_0', img: '', name: 'Tok Guru Utama', icon: '👳‍♂️', role: 'Mahaguru', atk: 650, hp: 900, syn: 'wb_1', synBonus: '+150 ATK bersama Ustaz Muda', desc: 'Benteng batin utama dengan daya tahan tinggi.' },
+  { id: 'wb_1', img: '', name: 'Ustaz Muda', icon: '📿', role: 'Peruqyah', atk: 550, hp: 750, syn: 'wb_0', synBonus: '+150 ATK bersama Tok Guru Utama', desc: 'Bacaan ayat suci yang menenangkan gangguan.' },
+  { id: 'wb_2', img: '', name: 'Bomoh Diraja', icon: '👑', role: 'Pawang Istana', atk: 700, hp: 850, syn: 'wb_12', synBonus: '+150 ATK bersama Pendekar Keris', desc: 'Daulat diraja yang seimbang ATK dan HP.' },
+  { id: 'wb_3', img: '', name: 'Dukun Santau', icon: '🧪', role: 'Ahli Bisa', atk: 750, hp: 600, syn: null, synBonus: '', desc: 'Serangan berbisa tinggi tetapi HP agak rendah.' },
+  { id: 'wb_4', img: '', name: 'Pawang Hutan', icon: '🌿', role: 'Penjaga Rimba', atk: 600, hp: 800, syn: 'wb_9', synBonus: '+150 HP bersama Pawang Buaya', desc: 'Semangat belantara yang sukar ditumbangkan.' },
+  { id: 'wb_5', img: '', name: 'Bomoh Siam', icon: '🎗️', role: 'Pawang Utara', atk: 680, hp: 680, syn: null, synBonus: '', desc: 'Tali keramat yang seimbang dalam tempur.' },
+  { id: 'wb_6', img: '', name: 'Bidan Kampung', icon: '🥣', role: 'Perawat', atk: 450, hp: 920, syn: 'wb_13', synBonus: '+200 HP bersama Nenek Kebayan', desc: 'Memiliki HP asas paling tinggi di kem Bomoh.' },
+  { id: 'wb_7', img: '', name: 'Pelatih Silat', icon: '🥋', role: 'Pesilat', atk: 620, hp: 740, syn: 'wb_12', synBonus: '+120 ATK bersama Pendekar Keris', desc: 'Jurus tangkas menentang hantu fizikal.' },
+  { id: 'wb_8', img: '', name: 'Tok Mudim', icon: '✂️', role: 'Ahli Bedah', atk: 640, hp: 700, syn: null, synBonus: '', desc: 'Serangan tajam berfokus.' },
+  { id: 'wb_9', img: '', name: 'Pawang Buaya', icon: '🐊', role: 'Penjinak Sungai', atk: 660, hp: 820, syn: 'wb_4', synBonus: '+150 HP bersama Pawang Hutan', desc: 'Ketahanan tinggi seperti kulit buaya.' },
+  { id: 'wb_10', img: '', name: 'Bomoh Tembikar', icon: '🏺', role: 'Pengurung', atk: 520, hp: 880, syn: null, synBonus: '', desc: 'Buyung tanah liat yang menyerap hentakan.' },
+  { id: 'wb_11', img: '', name: 'Ahli Falak', icon: '🔭', role: 'Pujangga Bintang', atk: 580, hp: 760, syn: null, synBonus: '', desc: 'Membaca pergerakan serangan musuh.' },
+  { id: 'wb_12', img: '', name: 'Pendekar Keris', icon: '🗡️', role: 'Panglima', atk: 740, hp: 700, syn: 'wb_2', synBonus: '+150 ATK bersama Bomoh Diraja', desc: 'Tikaman keris berkuasa tinggi.' },
+  { id: 'wb_13', img: '', name: 'Nenek Kebayan', icon: '🧺', role: 'Peramu Herba', atk: 560, hp: 840, syn: 'wb_6', synBonus: '+200 HP bersama Bidan Kampung', desc: 'Ramuan akar kayu penambah tenaga.' },
+  { id: 'wb_14', img: '', name: 'Ahli Ruqyah', icon: '📖', role: 'Ustaz Kanan', atk: 630, hp: 790, syn: 'wb_1', synBonus: '+130 ATK bersama Ustaz Muda', desc: 'Pendinding ayat suci yang kukuh.' },
+  { id: 'wb_15', img: '', name: 'Pawang Hujan', icon: '⛈️', role: 'Pengalih Awan', atk: 570, hp: 780, syn: null, synBonus: '', desc: 'Mengawal keseimbangan cuaca malam.' },
+  { id: 'wb_16', img: '', name: 'Bomoh Tulang', icon: '🦴', role: 'Tabib Rangka', atk: 590, hp: 860, syn: null, synBonus: '', desc: 'Rangka batin yang tahan lasak.' },
+  { id: 'wb_17', img: '', name: 'Penjaga Makam', icon: '🕯️', role: 'Warden Tanah', atk: 610, hp: 830, syn: null, synBonus: '', desc: 'Menyekat kebangkitan roh kubur.' },
+  { id: 'wb_18', img: '', name: 'Murid Pondok', icon: '🕌', role: 'Pelatih', atk: 480, hp: 720, syn: 'wb_0', synBonus: '+180 ATK di sebelah Tok Guru Utama', desc: 'Semangat berguru yang menggandakan keberanian.' },
+  { id: 'wb_19', img: '', name: 'Orang Bunian', icon: '✨', role: 'Sekutu Ghaib', atk: 690, hp: 770, syn: null, synBonus: '', desc: 'Bantuan halimunan dari alam sebelah.' }
+];
+
+let EQUIP_BOMOH = [
+  { id: 'eb_0', img: '', name: 'Keris Taming Sari', icon: '🗡️', sub: 'metal', atk: 300, hp: 100, effect: null, desc: '+300 ATK & +100 HP. Senjata pemusnah utama.' },
+  { id: 'eb_1', img: '', name: 'Air Yasin', icon: '🍶', sub: 'glass', atk: 50, hp: 350, effect: 'cleanse', desc: '+50 ATK & +350 HP. Penawar suci berkuasa tinggi.' },
+  { id: 'eb_2', img: '', name: 'Lada Hitam', icon: '⚫', sub: 'wood', atk: 220, hp: 0, effect: null, desc: '+220 ATK. Serangan memedihkan mata musuh.' },
+  { id: 'eb_3', img: '', name: 'Limau Purut', icon: '🍋', sub: 'glass', atk: 120, hp: 180, effect: 'weaken', desc: '+120 ATK, +180 HP & melemahkan 160 ATK lawan.' },
+  { id: 'eb_4', img: '', name: 'Kemenyan Putih', icon: '💨', sub: 'wood', atk: 180, hp: 180, effect: null, desc: '+180 ATK & +180 HP. Keseimbangan serba boleh.' },
+  { id: 'eb_5', img: '', name: 'Garam Kasar', icon: '🧂', sub: 'glass', atk: 0, hp: 320, effect: 'anti_trap', desc: '+320 HP & kebal daripada Perangkap Hantu.' },
+  { id: 'eb_6', img: '', name: 'Buluh Runcing', icon: '🎋', sub: 'wood', atk: 280, hp: 0, effect: null, desc: '+280 ATK. Tusukan tajam menembusi pertahanan.' },
+  { id: 'eb_7', img: '', name: 'Botol Kaca Kalis', icon: '🍾', sub: 'glass', atk: 0, hp: 150, effect: 'stun', desc: 'PERANGKAP: Kurung lawan! ATK lawan menjadi 0.' },
+  { id: 'eb_8', img: '', name: 'Tasbih Kayu Kokka', icon: '📿', sub: 'wood', atk: 100, hp: 280, effect: null, desc: '+100 ATK & +280 HP. Benteng zikir.' },
+  { id: 'eb_9', img: '', name: 'Kain Kuning', icon: '🟨', sub: 'wood', atk: 80, hp: 300, effect: null, desc: '+80 ATK & +300 HP. Lilitan perlindungan diraja.' },
+  { id: 'eb_10', img: '', name: 'Minyak Kasturi', icon: '🧴', sub: 'glass', atk: 200, hp: 200, effect: null, desc: '+200 ATK & +200 HP. Haruman penguat semangat.' },
+  { id: 'eb_11', img: '', name: 'Paku Besi Kuning', icon: '📍', sub: 'metal', atk: 240, hp: 0, effect: 'silence', desc: '+240 ATK & membatalkan fungsi Equip lawan.' },
+  { id: 'eb_12', img: '', name: 'Kitab Perubatan Lama', icon: '📜', sub: 'wood', atk: 120, hp: 300, effect: null, desc: '+120 ATK & +300 HP. Ilmu warisan turun-temurun.' },
+  { id: 'eb_13', img: '', name: 'Cincin Batu Akik', icon: '💍', sub: 'glass', atk: 250, hp: 120, effect: null, desc: '+250 ATK & +120 HP. Aura permata tempur.' },
+  { id: 'eb_14', img: '', name: 'Daun Bidara', icon: '🍃', sub: 'wood', atk: 0, hp: 380, effect: null, desc: '+380 HP. Mandian penawar paling tebal.' },
+  { id: 'eb_15', img: '', name: 'Rotan Semambu', icon: '🦯', sub: 'wood', atk: 270, hp: 80, effect: null, desc: '+270 ATK & +80 HP. Libasan berbisa.' },
+  { id: 'eb_16', img: '', name: 'Kapur Barus', icon: '⚪', sub: 'glass', atk: 90, hp: 260, effect: null, desc: '+90 ATK & +260 HP. Menghalang gangguan.' },
+  { id: 'eb_17', img: '', name: 'Benang Tiga Warna', icon: '🧶', sub: 'wood', atk: 100, hp: 200, effect: 'weaken', desc: '+100 ATK, +200 HP & tolak 160 ATK lawan.' },
+  { id: 'eb_18', img: '', name: 'Tepung Tawar', icon: '🥣', sub: 'wood', atk: 60, hp: 340, effect: null, desc: '+60 ATK & +340 HP. Penyejuk serangan.' },
+  { id: 'eb_19', img: '', name: 'Ayat Pendinding', icon: '🛡️', sub: 'glass', atk: 150, hp: 350, effect: 'anti_trap', desc: '+150 ATK, +350 HP & kebal perangkap.' }
+];
+
+let WATAK_HANTU = [
+  { id: 'wh_0', img: '', name: 'Hantu Raya', icon: '🦍', role: 'Raja Saka', sfx: 'growl', atk: 760, hp: 880, syn: 'wh_19', synBonus: '+150 ATK bersama Saka Keturunan', desc: 'Kekuatan gergasi paling digeruni.' },
+  { id: 'wh_1', img: '', name: 'Pontianak', icon: '🧛‍♀️', role: 'Roh Mengilai', sfx: 'eerie', atk: 700, hp: 740, syn: 'wh_5', synBonus: '+150 ATK bersama Langsuir', desc: 'Ngilaian malam yang menggentarkan lawan.' },
+  { id: 'wh_2', img: '', name: 'Pocong', icon: '👻', role: 'Hantu Kafan', sfx: 'thud', atk: 540, hp: 920, syn: 'wh_16', synBonus: '+180 HP bersama Hantu Bungkus', desc: 'Ikatan kafan dengan HP tertinggi.' },
+  { id: 'wh_3', img: '', name: 'Toyol', icon: '👶', role: 'Pencuri Licik', sfx: 'hiss', atk: 520, hp: 640, syn: null, synBonus: '', desc: 'Pantas menyelinap di celah pertahanan.' },
+  { id: 'wh_4', img: '', name: 'Penanggal', icon: '🩸', role: 'Kepala Terbang', sfx: 'eerie', atk: 740, hp: 660, syn: 'wh_6', synBonus: '+140 ATK bersama Pelesit', desc: 'Serangan udara berkuasa tinggi.' },
+  { id: 'wh_5', img: '', name: 'Langsuir', icon: '🦇', role: 'Penunggu Pohon', sfx: 'eerie', atk: 690, hp: 720, syn: 'wh_1', synBonus: '+150 ATK bersama Pontianak', desc: 'Menyambar pantas dari dahan tinggi.' },
+  { id: 'wh_6', img: '', name: 'Pelesit', icon: '🦗', role: 'Pembuka Jalan', sfx: 'hiss', atk: 610, hp: 680, syn: 'wh_7', synBonus: '+150 ATK bersama Polong', desc: 'Tusukan halus pembuka laluan Polong.' },
+  { id: 'wh_7', img: '', name: 'Polong', icon: '🔥', role: 'Jin Darah', sfx: 'hiss', atk: 730, hp: 620, syn: 'wh_6', synBonus: '+150 ATK bersama Pelesit', desc: 'Semburan api darah yang ganas.' },
+  { id: 'wh_8', img: '', name: 'Bajang', icon: '🐈‍⬛', role: 'Cakaran Malam', sfx: 'growl', atk: 650, hp: 730, syn: null, synBonus: '', desc: 'Kuku tajam yang merobek perisai.' },
+  { id: 'wh_9', img: '', name: 'Hantu Air', icon: '🌊', role: 'Penunggu Lubuk', sfx: 'thud', atk: 620, hp: 840, syn: null, synBonus: '', desc: 'Pusaran air yang menarik mangsa.' },
+  { id: 'wh_10', img: '', name: 'Jembalang Tanah', icon: '🪨', role: 'Lembaga Bumi', sfx: 'growl', atk: 640, hp: 900, syn: 'wh_17', synBonus: '+180 HP bersama Jin Tanah', desc: 'Perisai bumi sekeras batu.' },
+  { id: 'wh_11', img: '', name: 'Orang Minyak', icon: '🖤', role: 'Penyelinap', sfx: 'hiss', atk: 670, hp: 750, syn: null, synBonus: '', desc: 'Licin dan sukar dikunci.' },
+  { id: 'wh_12', img: '', name: 'Hantu Galah', icon: '🌲', role: 'Lembaga Tinggi', sfx: 'thud', atk: 630, hp: 820, syn: null, synBonus: '', desc: 'Serangan jarak jauh dari atas.' },
+  { id: 'wh_13', img: '', name: 'Hantu Kopek', icon: '🌫️', role: 'Pengeliru', sfx: 'eerie', atk: 580, hp: 860, syn: null, synBonus: '', desc: 'Kabut tebal yang mengelirukan lawan.' },
+  { id: 'wh_14', img: '', name: 'Bota', icon: '👹', role: 'Gergasi Purba', sfx: 'growl', atk: 720, hp: 890, syn: null, synBonus: '', desc: 'Gergasi tanah dengan ATK dan HP tinggi.' },
+  { id: 'wh_15', img: '', name: 'Pari-pari Hutan', icon: '🧚‍♀️', role: 'Roh Rimba', sfx: 'eerie', atk: 550, hp: 760, syn: null, synBonus: '', desc: 'Bisikan halus dari hutan belantara.' },
+  { id: 'wh_16', img: '', name: 'Hantu Bungkus', icon: '⚰️', role: 'Roh Bergolek', sfx: 'thud', atk: 600, hp: 850, syn: 'wh_2', synBonus: '+180 HP bersama Pocong', desc: 'Balutan kain tebal yang tahan pukul.' },
+  { id: 'wh_17', img: '', name: 'Jin Tanah', icon: '🌋', role: 'Penunggu Hutan', sfx: 'growl', atk: 710, hp: 840, syn: 'wh_10', synBonus: '+180 HP bersama Jembalang Tanah', desc: 'Kuasa mistik berunsur tanah.' },
+  { id: 'wh_18', img: '', name: 'Balbal', icon: '🦅', role: 'Hantu Terbang', sfx: 'eerie', atk: 660, hp: 710, syn: null, synBonus: '', desc: 'Terbangan malam yang pantas.' },
+  { id: 'wh_19', img: '', name: 'Saka Keturunan', icon: '👁️', role: 'Warisan Gelap', sfx: 'growl', atk: 750, hp: 830, syn: 'wh_0', synBonus: '+150 ATK bersama Hantu Raya', desc: 'Aura gelap warisan turun-temurun.' }
+];
+
+let EQUIP_HANTU = [
+  { id: 'eh_0', img: '', name: 'Paku Pontianak', icon: '🔩', atk: 300, hp: 80, effect: null, desc: '+300 ATK & +80 HP. Tusukan paku berkarat.' },
+  { id: 'eh_1', img: '', name: 'Tanah Kubur Baru', icon: '🪦', atk: 80, hp: 340, effect: null, desc: '+80 ATK & +340 HP. Pertahanan tanah kubur.' },
+  { id: 'eh_2', img: '', name: 'Kain Kafan Lama', icon: '🩹', atk: 0, hp: 400, effect: 'anti_trap', desc: '+400 HP & kebal daripada Perangkap Bomoh.' },
+  { id: 'eh_3', img: '', name: 'Darah Ayam Hitam', icon: '🩸', atk: 280, hp: 120, effect: null, desc: '+280 ATK & +120 HP. Pengeras menggandakan keganasan.' },
+  { id: 'eh_4', img: '', name: 'Waktu Senja', icon: '🌆', atk: 200, hp: 200, effect: null, desc: '+200 ATK & +200 HP. Kebangkitan waktu remang.' },
+  { id: 'eh_5', img: '', name: 'Patung Santau', icon: '🪆', atk: 180, hp: 0, effect: 'reflect', desc: 'PERANGKAP: Pantul 220 kerosakan terus kepada HP lawan!' },
+  { id: 'eh_6', img: '', name: 'Tali Gantung', icon: '🪢', atk: 0, hp: 150, effect: 'stun', desc: 'PERANGKAP: Jerut lawan! ATK lawan menjadi 0.' },
+  { id: 'eh_7', img: '', name: 'Jarum Peniti Karat', icon: '🧷', atk: 260, hp: 60, effect: null, desc: '+260 ATK & +60 HP. Tusukan bisa halus.' },
+  { id: 'eh_8', img: '', name: 'Minyak Dagu', icon: '🧪', atk: 160, hp: 160, effect: 'weaken', desc: '+160 ATK/HP & pukau lawan (-160 ATK lawan).' },
+  { id: 'eh_9', img: '', name: 'Tulang Manusia', icon: '🦴', atk: 140, hp: 280, effect: null, desc: '+140 ATK & +280 HP. Perisai rangka keras.' },
+  { id: 'eh_10', img: '', name: 'Pokok Pisang Hutan', icon: '🌴', atk: 60, hp: 350, effect: null, desc: '+60 ATK & +350 HP. Teduhan tenaga malam.' },
+  { id: 'eh_11', img: '', name: 'Telur Ayam Kampung', icon: '🥚', atk: 120, hp: 280, effect: null, desc: '+120 ATK & +280 HP. Jamuan pemulih tenaga.' },
+  { id: 'eh_12', img: '', name: 'Kemenyan Hitam', icon: '🖤', atk: 240, hp: 160, effect: null, desc: '+240 ATK & +160 HP. Asap hitam penyeru roh.' },
+  { id: 'eh_13', img: '', name: 'Botol Pecah', icon: '🍾', atk: 290, hp: 0, effect: 'silence', desc: '+290 ATK & membatalkan fungsi Equip lawan.' },
+  { id: 'eh_14', img: '', name: 'Rambut Panjang', icon: '🕸️', atk: 100, hp: 220, effect: 'weaken', desc: '+100 ATK, +220 HP & jerutan (-160 ATK lawan).' },
+  { id: 'eh_15', img: '', name: 'Air Mandian Mayat', icon: '🪣', atk: 220, hp: 180, effect: null, desc: '+220 ATK & +180 HP. Siraman bisa sejuk.' },
+  { id: 'eh_16', img: '', name: 'Batu Nisan Retak', icon: '🪨', atk: 110, hp: 310, effect: null, desc: '+110 ATK & +310 HP. Benteng makam.' },
+  { id: 'eh_17', img: '', name: 'Angin Malam Jumaat', icon: '🌪️', atk: 250, hp: 150, effect: null, desc: '+250 ATK & +150 HP. Tiupan ribut gelap.' },
+  { id: 'eh_18', img: '', name: 'Cermin Retak Seribu', icon: '🪞', atk: 120, hp: 120, effect: 'reflect', desc: '+120 ATK/HP & pantul 220 kerosakan.' },
+  { id: 'eh_19', img: '', name: 'Perjanjian Saka', icon: '📜', atk: 320, hp: 180, effect: null, desc: '+320 ATK & +180 HP. Ikatan kuasa gelap tertinggi!' }
+];
+
+const WEATHER_EVENTS = [
+  { name: 'Malam Jumaat Kliwon', icon: '🌕', desc: 'Semua watak Hantu +100 ATK', apply: (b, h) => { h.atk += 100; } },
+  { name: 'Waktu Subuh Hening', icon: '🌅', desc: 'Semua watak Bomoh +150 HP', apply: (b, h) => { b.hp += 150; } },
+  { name: 'Gerhana Bulan Darah', icon: '🩸', desc: 'Semua watak +120 ATK', apply: (b, h) => { b.atk += 120; h.atk += 120; } },
+  { name: 'Kabus Tebal Kampung', icon: '🌫️', desc: 'Semua watak +120 HP', apply: (b, h) => { b.hp += 120; h.hp += 120; } },
+  { name: 'Hujan Panas Misteri', icon: '🌦️', desc: 'Semua kesan Stun/Kurung terbatal pusingan ini', noStun: true, apply: () => {} }
+];
+
+// Fungsi Bacaan CSV & JSONP Google Visualization API (Membaca Lajur A untuk Gambar + Nama/ATK/HP/Keterangan)
+async function fetchSheetRows(sheetName) {
+  const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+  const res = await fetch(url);
+  const txt = await res.text();
+  const jsonStart = txt.indexOf('{');
+  const jsonEnd = txt.lastIndexOf('}');
+  if (jsonStart === -1 || jsonEnd === -1) throw new Error('Format tidak sah');
+  const data = JSON.parse(txt.substring(jsonStart, jsonEnd + 1));
+  return data.table;
+}
+
+function updateCardArrayFromTable(targetArray, table) {
+  if (!table || !table.rows) return 0;
+  let updatedCount = 0;
+
+  // Kenal pasti indeks lajur berdasarkan label atau kandungan
+  const cols = (table.cols || []).map(c => (c.label || '').toLowerCase().trim());
+
+  table.rows.forEach((rowObj, rIdx) => {
+    const cells = (rowObj.c || []).map(cell => (cell && cell.v !== null && cell.v !== undefined) ? String(cell.v).trim() : '');
+    if (cells.every(v => !v)) return;
+
+    // Lajur A (cells[0]) dikhaskan untuk Gambar/Image Link jika awak letak Column A sebagai Image!
+    // Cari di mana letaknya ID kad (seperti wb_0, eb_0, wh_0, eh_0)
+    const idColIdx = cells.findIndex(v => /^(wb|eb|wh|eh)_\d+$/i.test(v));
+    let targetCard = null;
+    let offset = 0;
+
+    if (idColIdx !== -1) {
+      const cardId = cells[idColIdx].toLowerCase();
+      targetCard = targetArray.find(c => c.id === cardId);
+      offset = idColIdx; // Jika ID berada di Lajur B (index 1), maka Lajur A (index 0) ialah Gambar!
+    } else if (rIdx < targetArray.length && cells[1] && !isNaN(Number(cells[4]))) {
+      targetCard = targetArray[rIdx];
+    }
+
+    if (targetCard) {
+      // Semak Lajur A (cells[0]) jika ID berada di Lajur B (index 1)
+      if (offset >= 1 && cells[0]) {
+        const parsedImg = normalizeImageUrl(cells[0]);
+        if (parsedImg) targetCard.img = parsedImg;
+      }
+      const nameVal = cells[offset + 3] || '';
+      const roleVal = cells[offset + 4] || '';
+      const atkVal  = parseInt(cells[offset + 5], 10);
+      const hpVal   = parseInt(cells[offset + 6], 10);
+      const synVal  = cells[offset + 7] || '';
+      const synBVal = cells[offset + 8] || '';
+      const descVal = cells[offset + 9] || '';
+
+      if (nameVal && nameVal.toLowerCase() !== 'nama') targetCard.name = nameVal;
+      if (roleVal && roleVal.toLowerCase() !== 'role') targetCard.role = roleVal;
+      if (!isNaN(atkVal)) targetCard.atk = atkVal;
+      if (!isNaN(hpVal)) targetCard.hp = hpVal;
+      if (synVal && synVal.toLowerCase() !== 'synergy id') targetCard.syn = synVal;
+      if (synBVal && synBVal.toLowerCase() !== 'bonus kombo') targetCard.synBonus = synBVal;
+      if (descVal && descVal.toLowerCase() !== 'keterangan') targetCard.desc = descVal;
+      updatedCount++;
+    }
+  });
+  return updatedCount;
+}
+
+async function syncFromGoogleSpreadsheet(manualAlert = false) {
+  const statusEl = document.getElementById('sheet-sync-status');
+  if (statusEl) statusEl.textContent = '⏳ Menyegerakkan data Google Sheets...';
+  let totalSynced = 0;
+
+  const sheetMappings = [
+    { name: 'Watak Bomoh', arr: WATAK_BOMOH },
+    { name: 'Equip Bomoh', arr: EQUIP_BOMOH },
+    { name: 'Watak Hantu', arr: WATAK_HANTU },
+    { name: 'Equip Hantu', arr: EQUIP_HANTU }
+  ];
+
+  for (const item of sheetMappings) {
+    try {
+      const tbl = await fetchSheetRows(item.name);
+      totalSynced += updateCardArrayFromTable(item.arr, tbl);
+    } catch (e) {}
+  }
+
+  if (statusEl) {
+    statusEl.textContent = totalSynced > 0
+      ? `✅ Live Sync Aktif (${totalSynced} Kad dari Spreadsheet)`
+      : `📊 Data Rasmi Sedia (80 Kad & Lajur A Aktif)`;
+  }
+  if (manualAlert) {
+    alert(totalSynced > 0
+      ? `Berjaya menyegerakkan ${totalSynced} kad secara langsung daripada Google Spreadsheet anda!`
+      : `Data kad sedia digunakan! Pastikan tab 'Watak Bomoh', 'Equip Bomoh', 'Watak Hantu', dan 'Equip Hantu' berada dalam spreadsheet.`);
+  }
+}
+
+/* =========================================================================
+   3. SISTEM AUDIO: MP3 BGM + SFX CANTUMAN SPARKLE & PERANG (TIADA SUARA BERCAKAP)
+   ========================================================================= */
+let audioCtx = null;
+let musicOn = true;
+let fallbackBgmInterval = null;
+let mp3PlayingSuccess = false;
+
+function ensureAudio() {
+  if (!audioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) audioCtx = new AC();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+}
+
+function enterGameWithAudio() {
+  ensureAudio();
+  const gate = document.getElementById('splash-audio-gate');
+  if (gate) gate.style.display = 'none';
+  startBackgroundMusic();
+  playBattleSFX('gong');
+}
+
+function startBackgroundMusic() {
+  const audioEl = document.getElementById('bgm-audio-el');
+  if (!musicOn) {
+    if (audioEl) audioEl.pause();
+    if (fallbackBgmInterval) clearInterval(fallbackBgmInterval);
+    return;
+  }
+  if (audioEl) {
+    audioEl.volume = 0.55;
+    const playPromise = audioEl.play();
+    if (playPromise !== undefined) {
+      playPromise.then(() => {
+        mp3PlayingSuccess = true;
+        if (fallbackBgmInterval) clearInterval(fallbackBgmInterval);
+      }).catch(() => {
+        mp3PlayingSuccess = false;
+        startFallbackSynthesizedBGM();
+      });
+    }
+  } else {
+    startFallbackSynthesizedBGM();
+  }
+}
+
+function startFallbackSynthesizedBGM() {
+  if (fallbackBgmInterval) clearInterval(fallbackBgmInterval);
+  const scale = [196.00, 220.00, 261.63, 293.66, 329.63, 392.00];
+  let step = 0;
+  fallbackBgmInterval = setInterval(() => {
+    if (!musicOn || mp3PlayingSuccess || !audioCtx) return;
+    try {
+      const now = audioCtx.currentTime;
+      const freq = scale[(step * 2 + (step % 3)) % scale.length];
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = step % 4 === 0 ? 'sine' : 'triangle';
+      osc.frequency.setValueAtTime(step % 4 === 0 ? freq * 0.5 : freq, now);
+      gain.gain.setValueAtTime(0.06, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.6);
+      step++;
+    } catch (e) {}
+  }, 420);
+}
+
+function toggleMusic() {
+  ensureAudio();
+  musicOn = !musicOn;
+  const icon = musicOn ? '🔊' : '🔇';
+  document.getElementById('bgm-btn-home').textContent = icon;
+  document.getElementById('bgm-btn-battle').textContent = icon;
+  startBackgroundMusic();
+}
+
+function playCardSFX(card) {
+  ensureAudio();
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+
+  if (card.id.startsWith('wb_')) {
+    const osc1 = audioCtx.createOscillator();
+    const osc2 = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc1.type = 'sine';
+    osc2.type = 'triangle';
+    osc1.frequency.setValueAtTime(160, now);
+    osc1.frequency.exponentialRampToValueAtTime(85, now + 0.25);
+    osc2.frequency.setValueAtTime(528, now);
+    osc2.frequency.exponentialRampToValueAtTime(660, now + 0.28);
+    gain.gain.setValueAtTime(0.26, now);
+    gain.gain.exponentialRampToValueAtTime(0.008, now + 0.3);
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc1.start(now);
+    osc2.start(now);
+    osc1.stop(now + 0.32);
+    osc2.stop(now + 0.32);
+
+  } else if (card.id.startsWith('wh_')) {
+    const sfxType = card.sfx || 'growl';
+    if (sfxType === 'eerie') {
+      const osc = audioCtx.createOscillator();
+      const lfo = audioCtx.createOscillator();
+      const lfoG = audioCtx.createGain();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(680, now);
+      osc.frequency.exponentialRampToValueAtTime(920, now + 0.2);
+      osc.frequency.exponentialRampToValueAtTime(420, now + 0.5);
+      lfo.frequency.value = 16;
+      lfoG.gain.value = 45;
+      lfo.connect(lfoG);
+      lfoG.connect(osc.frequency);
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.008, now + 0.52);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      lfo.start(now);
+      osc.stop(now + 0.55);
+      lfo.stop(now + 0.55);
+    } else {
+      const osc = audioCtx.createOscillator();
+      const mod = audioCtx.createOscillator();
+      const modG = audioCtx.createGain();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(80, now);
+      osc.frequency.linearRampToValueAtTime(52, now + 0.4);
+      mod.frequency.value = 30;
+      modG.gain.value = 25;
+      mod.connect(modG);
+      modG.connect(osc.frequency);
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.42);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      mod.start(now);
+      osc.stop(now + 0.44);
+      mod.stop(now + 0.44);
+    }
+
+  } else if (card.id.startsWith('eb_')) {
+    if (card.sub === 'glass') {
+      [1480, 2220].forEach((f, idx) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(f, now + idx * 0.04);
+        gain.gain.setValueAtTime(0.2, now + idx * 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.005, now + 0.32);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now + idx * 0.04);
+        osc.stop(now + 0.35);
+      });
+    } else {
+      [0, 0.08].forEach((d, idx) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(idx === 0 ? 310 : 420, now + d);
+        osc.frequency.exponentialRampToValueAtTime(105, now + d + 0.07);
+        gain.gain.setValueAtTime(0.3, now + d);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + d + 0.075);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now + d);
+        osc.stop(now + d + 0.08);
+      });
+    }
+
+  } else if (card.id.startsWith('eh_')) {
+    const bufLen = audioCtx.sampleRate * 0.3;
+    const buffer = audioCtx.createBuffer(1, bufLen, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufLen; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.sin(i * 0.045);
+    }
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.Q.value = 5.5;
+    filter.frequency.setValueAtTime(200, now);
+    filter.frequency.exponentialRampToValueAtTime(640, now + 0.14);
+    filter.frequency.exponentialRampToValueAtTime(140, now + 0.29);
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0.42, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioCtx.destination);
+    noise.start(now);
+  }
+}
+
+function playBattleSFX(type) {
+  ensureAudio();
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+
+  if (type === 'flip') {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(260, now);
+    osc.frequency.exponentialRampToValueAtTime(620, now + 0.13);
+    gain.gain.setValueAtTime(0.22, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.14);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + 0.15);
+
+  } else if (type === 'sparkle_fusion') {
+    // Bunyi Berkilau / Shining Semasa Kad Equip Bersatu Dengan Kad Watak!
+    const notes = [587.33, 783.99, 987.77, 1174.66, 1567.98];
+    notes.forEach((f, idx) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(f, now + idx * 0.055);
+      gain.gain.setValueAtTime(0.18, now + idx * 0.055);
+      gain.gain.exponentialRampToValueAtTime(0.003, now + idx * 0.055 + 0.45);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now + idx * 0.055);
+      osc.stop(now + idx * 0.055 + 0.48);
+    });
+
+  } else if (type === 'gong') {
+    [110, 165, 220, 330].forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = i === 0 ? 'sine' : 'triangle';
+      osc.frequency.setValueAtTime(freq, now);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.95, now + 1.25);
+      gain.gain.setValueAtTime(0.24 / (i + 1), now);
+      gain.gain.exponentialRampToValueAtTime(0.002, now + 1.3);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 1.35);
+    });
+
+  } else if (type === 'war_clash') {
+    const bufLen = audioCtx.sampleRate * 0.26;
+    const buf = audioCtx.createBuffer(1, bufLen, audioCtx.sampleRate);
+    const ch = buf.getChannelData(0);
+    for (let i = 0; i < bufLen; i++) {
+      ch[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.07));
+    }
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buf;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.value = 850;
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0.38, now);
+    g.gain.exponentialRampToValueAtTime(0.01, now + 0.26);
+    noise.connect(filter);
+    filter.connect(g);
+    g.connect(audioCtx.destination);
+    noise.start(now);
+
+    const sub = audioCtx.createOscillator();
+    const subG = audioCtx.createGain();
+    sub.type = 'sawtooth';
+    sub.frequency.setValueAtTime(135, now);
+    sub.frequency.exponentialRampToValueAtTime(40, now + 0.3);
+    subG.gain.setValueAtTime(0.34, now);
+    subG.gain.exponentialRampToValueAtTime(0.01, now + 0.32);
+    sub.connect(subG);
+    subG.connect(audioCtx.destination);
+    sub.start(now);
+    sub.stop(now + 0.33);
+
+  } else if (type === 'ko_slam') {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(115, now);
+    osc.frequency.exponentialRampToValueAtTime(30, now + 0.42);
+    gain.gain.setValueAtTime(0.34, now);
+    gain.gain.exponentialRampToValueAtTime(0.008, now + 0.44);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + 0.45);
+  }
+}
+
+/* =========================================================================
+   4. DATABASE OFFLINE 20 PEMAIN, RANKING MOVEMENT & 10 GELARAN
+   ========================================================================= */
+const STORAGE_KEY_ROSTER = 'bvh_v4_offline_roster_20';
+const STORAGE_KEY_LOGS   = 'bvh_v4_match_history';
+
+let playerRoster = [];
+let matchLogs = [];
+let activeP1Id = '';
+let activeP2Id = '';
+let editingTargetSlot = 1;
+let draftedAvatarDataUrl = '';
+let cameraStream = null;
+let lastRankingTransition = null; // Menyimpan perubahan kedudukan & gelaran selepas perlawanan tamat
+
+function initOfflineDatabase() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_ROSTER);
+    if (raw) playerRoster = JSON.parse(raw);
+    const rawLogs = localStorage.getItem(STORAGE_KEY_LOGS);
+    if (rawLogs) matchLogs = JSON.parse(rawLogs);
+  } catch (e) {}
+
+  if (!Array.isArray(playerRoster) || playerRoster.length === 0) {
+    playerRoster = [
+      { id: 'u_1', name: 'Edie', avatar: '', icon: '🧙‍♂️', pt: 1080, wins: 3, losses: 1 },
+      { id: 'u_2', name: 'Pemain 2', avatar: '', icon: '👹', pt: 1020, wins: 1, losses: 1 },
+      { id: 'u_3', name: 'Tok Adi', avatar: '', icon: '👳‍♂️', pt: 1090, wins: 4, losses: 2 },
+      { id: 'u_4', name: 'Pawang Darus', avatar: '', icon: '🗡️', pt: 1040, wins: 2, losses: 2 }
+    ];
+    saveOfflineDatabase();
+  }
+  playerRoster.forEach(p => {
+    if (typeof p.pt !== 'number') p.pt = p.mmr || 1000;
+  });
+
+  activeP1Id = playerRoster[0].id;
+  activeP2Id = (playerRoster[1] || playerRoster[0]).id;
+  refreshPlayerDropdowns();
+}
+
+function saveOfflineDatabase() {
+  try {
+    localStorage.setItem(STORAGE_KEY_ROSTER, JSON.stringify(playerRoster));
+    localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(matchLogs));
+  } catch (e) {}
+}
+
+function getAccountById(id) {
+  return playerRoster.find(p => p.id === id) || playerRoster[0];
+}
+
+function renderAvatarNode(acc) {
+  if (acc && acc.avatar) return `<img src="${acc.avatar}" alt="${acc.name}" />`;
+  return acc ? (acc.icon || '🧙‍♂️') : '🧙‍♂️';
+}
+
+function refreshPlayerDropdowns() {
+  const s1 = document.getElementById('select-p1-account');
+  const s2 = document.getElementById('select-p2-account');
+  if (!s1 || !s2) return;
+
+  s1.innerHTML = playerRoster.map(p =>
+    `<option value="${p.id}" ${p.id === activeP1Id ? 'selected' : ''}>${p.name} (${p.pt} Pt)</option>`
+  ).join('');
+
+  s2.innerHTML = playerRoster.map(p =>
+    `<option value="${p.id}" ${p.id === activeP2Id ? 'selected' : ''}>${p.name} (${p.pt} Pt)</option>`
+  ).join('');
+
+  const p1 = getAccountById(activeP1Id);
+  document.getElementById('home-p1-name').textContent = p1.name;
+  document.getElementById('home-p1-pt').textContent = `${p1.pt} Pt`;
+  document.getElementById('home-p1-rank').textContent = getRankLabel(p1.pt, matchState.p1Camp);
+  document.getElementById('home-p1-avatar').innerHTML = renderAvatarNode(p1);
+}
+
+function onSelectAccount(slot, accId) {
+  if (slot === 1) activeP1Id = accId;
+  else activeP2Id = accId;
+  refreshPlayerDropdowns();
+}
+
+function openRosterModal(targetSlot = 1) {
+  editingTargetSlot = targetSlot;
+  const currentAcc = getAccountById(targetSlot === 2 ? activeP2Id : activeP1Id);
+  document.getElementById('input-new-player-name').value = currentAcc ? currentAcc.name : '';
+  draftedAvatarDataUrl = currentAcc ? (currentAcc.avatar || '') : '';
+  updateDraftAvatarPreview();
+  renderRosterListUI();
+  openModal('roster-modal');
+}
+
+function updateDraftAvatarPreview() {
+  const box = document.getElementById('preview-new-avatar');
+  box.innerHTML = draftedAvatarDataUrl ? `<img src="${draftedAvatarDataUrl}" alt="Avatar" />` : '🧙‍♂️';
+}
+
+async function startSelfieCamera() {
+  const video = document.getElementById('camera-video');
+  const snapBtn = document.getElementById('btn-snap-cam');
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: 160, height: 160 },
+      audio: false
+    });
+    video.srcObject = cameraStream;
+    video.style.display = 'block';
+    snapBtn.style.display = 'inline-block';
+  } catch (err) {
+    alert('Kamera tidak dapat diakses pada pelayar ini. Anda masih boleh menyimpan nama pemain.');
+  }
+}
+
+function stopSelfieCamera() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+  }
+  const video = document.getElementById('camera-video');
+  const snapBtn = document.getElementById('btn-snap-cam');
+  if (video) video.style.display = 'none';
+  if (snapBtn) snapBtn.style.display = 'none';
+}
+
+function captureLowResSelfie() {
+  const video = document.getElementById('camera-video');
+  const canvas = document.getElementById('camera-canvas');
+  if (!video || !canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, 96, 96);
+  draftedAvatarDataUrl = canvas.toDataURL('image/jpeg', 0.65);
+  updateDraftAvatarPreview();
+  stopSelfieCamera();
+}
+
+function clearAvatarDraft() {
+  draftedAvatarDataUrl = '';
+  updateDraftAvatarPreview();
+}
+
+function saveOrAddPlayerToRoster() {
+  const cleanName = document.getElementById('input-new-player-name').value.trim();
+  if (!cleanName) {
+    alert('Sila masukkan nama pemain!');
+    return;
+  }
+  const existing = playerRoster.find(p => p.name.toLowerCase() === cleanName.toLowerCase());
+  if (existing) {
+    existing.name = cleanName;
+    if (draftedAvatarDataUrl) existing.avatar = draftedAvatarDataUrl;
+    if (editingTargetSlot === 2) activeP2Id = existing.id;
+    else activeP1Id = existing.id;
+  } else {
+    if (playerRoster.length >= 20) {
+      alert('Senarai penuh (Maksimum 20 Pemain)!');
+      return;
+    }
+    const newAcc = {
+      id: 'u_' + Date.now(),
+      name: cleanName,
+      avatar: draftedAvatarDataUrl || '',
+      icon: editingTargetSlot === 2 ? '👹' : '🧙‍♂️',
+      pt: 1000,
+      wins: 0,
+      losses: 0
+    };
+    playerRoster.push(newAcc);
+    if (editingTargetSlot === 2) activeP2Id = newAcc.id;
+    else activeP1Id = newAcc.id;
+  }
+  saveOfflineDatabase();
+  refreshPlayerDropdowns();
+  renderRosterListUI();
+}
+
+function selectFromRosterList(accId) {
+  if (editingTargetSlot === 2) activeP2Id = accId;
+  else activeP1Id = accId;
+  saveOfflineDatabase();
+  refreshPlayerDropdowns();
+  closeModal('roster-modal');
+}
+
+function deletePlayerFromRoster(accId) {
+  if (playerRoster.length <= 1) return;
+  playerRoster = playerRoster.filter(p => p.id !== accId);
+  if (activeP1Id === accId) activeP1Id = playerRoster[0].id;
+  if (activeP2Id === accId) activeP2Id = (playerRoster[1] || playerRoster[0]).id;
+  saveOfflineDatabase();
+  refreshPlayerDropdowns();
+  renderRosterListUI();
+}
+
+function renderRosterListUI() {
+  document.getElementById('roster-count-lbl').textContent = `${playerRoster.length}/20`;
+  document.getElementById('roster-accounts-list').innerHTML = playerRoster.map(p => `
+    <div class="roster-item">
+      <div class="roster-item-left">
+        <div class="avatar-circle" style="width:30px;height:30px;font-size:13px;">${renderAvatarNode(p)}</div>
+        <div>
+          <div style="font-weight:800;font-size:11.5px;">${p.name}</div>
+          <div style="font-size:10px;color:#5c3a1e;">${p.pt} Pt • ${getRankLabel(p.pt)}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:4px;">
+        <button class="mini-btn" style="background:#15803d;color:#fff;" onclick="selectFromRosterList('${p.id}')">Pilih P${editingTargetSlot}</button>
+        <button class="mini-btn" style="background:#991b1b;color:#fff;" onclick="deletePlayerFromRoster('${p.id}')">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* =========================================================================
+   5. ENJIN SIMULASI TEPAT & PENASIHAT TAKTIKAL AI (LOGIK, TEPAT & TIDAK CELARU)
+   ========================================================================= */
+let advisorEnabled = true;
+let currentSuggestionsList = [];
+let currentSuggestionIdx = 0;
+
+function toggleAdvisorSetting() {
+  advisorEnabled = !advisorEnabled;
+  const btn = document.getElementById('btn-toggle-advisor');
+  btn.textContent = `💡 AI: ${advisorEnabled ? 'ON' : 'OFF'}`;
+  btn.style.borderColor = advisorEnabled ? '#38bdf8' : '#78716c';
+  btn.style.color = advisorEnabled ? '#bae6fd' : '#a8a29e';
+  updateEquipAdvisorUI();
+  renderBattleArena();
+}
+
+// Fungsi Simulasi Matematik Pertempuran Sebenar untuk 1 Laluan (Mengambil kira Cuaca + Sinergi + Kesan Equip)
+function simulateLaneBattleResult(laneIdx, myLanes, oppLanes, myCamp, myEquipCard, oppEquipCard = null) {
+  const myOrig = myLanes[laneIdx];
+  const oppOrig = oppLanes[laneIdx];
+  if (!myOrig || !oppOrig) return null;
+
+  const myIsBomoh = myCamp === 'bomoh';
+  const bStat = myIsBomoh ? { ...myOrig } : { ...oppOrig };
+  const hStat = myIsBomoh ? { ...oppOrig } : { ...myOrig };
+
+  // 1. Kesan Cuaca Semasa
+  matchState.weather.apply(bStat, hStat);
+
+  // 2. Kesan Kombo Sinergi Bersebelahan
+  const bomohLanes = myIsBomoh ? myLanes : oppLanes;
+  const hantuLanes = myIsBomoh ? oppLanes : myLanes;
+  if (hasAdjacentSynergy(bomohLanes, laneIdx)) { bStat.atk += 150; bStat.hp += 100; }
+  if (hasAdjacentSynergy(hantuLanes, laneIdx)) { hStat.atk += 150; hStat.hp += 100; }
+
+  // 3. Kesan Equip
+  const bEq = myIsBomoh ? myEquipCard : oppEquipCard;
+  const hEq = myIsBomoh ? oppEquipCard : myEquipCard;
+
+  const bSilenced = hEq && hEq.effect === 'silence';
+  const hSilenced = bEq && bEq.effect === 'silence';
+  const actBEq = bSilenced ? null : bEq;
+  const actHEq = hSilenced ? null : hEq;
+
+  if (actBEq) {
+    bStat.atk += actBEq.atk;
+    bStat.hp  += actBEq.hp;
+    if (actBEq.effect === 'weaken') hStat.atk = Math.max(0, hStat.atk - 160);
+  }
+  if (actHEq) {
+    hStat.atk += actHEq.atk;
+    hStat.hp  += actHEq.hp;
+    if (actHEq.effect === 'weaken') bStat.atk = Math.max(0, bStat.atk - 160);
+  }
+
+  const bAntiTrap = actBEq && actBEq.effect === 'anti_trap';
+  const hAntiTrap = actHEq && actHEq.effect === 'anti_trap';
+
+  if (!matchState.weather.noStun) {
+    if (actBEq && actBEq.effect === 'stun' && !hAntiTrap) hStat.atk = 0;
+    if (actHEq && actHEq.effect === 'stun' && !bAntiTrap) bStat.atk = 0;
+  }
+  if (actBEq && actBEq.effect === 'reflect' && !hAntiTrap) hStat.hp -= 220;
+  if (actHEq && actHEq.effect === 'reflect' && !bAntiTrap) bStat.hp -= 220;
+
+  const remBomohHP = Math.max(0, bStat.hp - hStat.atk);
+  const remHantuHP = Math.max(0, hStat.hp - bStat.atk);
+
+  const myFinalATK = myIsBomoh ? bStat.atk : hStat.atk;
+  const myFinalHP  = myIsBomoh ? bStat.hp : hStat.hp;
+  const oppFinalATK = myIsBomoh ? hStat.atk : bStat.atk;
+  const oppFinalHP  = myIsBomoh ? hStat.hp : bStat.hp;
+
+  const myRemHP  = myIsBomoh ? remBomohHP : remHantuHP;
+  const oppRemHP = myIsBomoh ? remHantuHP : remBomohHP;
+
+  let outcome = 'draw';
+  if (myRemHP > oppRemHP) outcome = 'win';
+  else if (oppRemHP > myRemHP) outcome = 'lose';
+
+  return {
+    outcome,
+    myFinalATK,
+    myFinalHP,
+    oppFinalATK,
+    oppFinalHP,
+    myRemHP,
+    oppRemHP,
+    netAdvantage: myRemHP - oppRemHP
+  };
+}
+
+function generateSmartEquipSuggestions() {
+  currentSuggestionsList = [];
+  const isP2 = matchState.phase === 'p2_equip';
+  const myCamp = isP2 ? matchState.p2Camp : matchState.p1Camp;
+  const myLanes = isP2 ? matchState.p2Lanes : matchState.p1Lanes;
+  const oppLanes = isP2 ? matchState.p1Lanes : matchState.p2Lanes;
+  const myEquips = isP2 ? matchState.p2Equips : matchState.p1Equips;
+  const myEquipDeck = isP2 ? matchState.p2EquipDeck : matchState.p1EquipDeck;
+
+  if (!myEquipDeck || myEquipDeck.length === 0) return;
+
+  for (let i = 0; i < 4; i++) {
+    if (myEquips[i]) continue; // Laluan sudah ada Equip
+    const myCard = myLanes[i];
+    const oppCard = oppLanes[i];
+    if (!myCard || !oppCard) continue;
+
+    // 1. Kira keputusan asal TANPA Equip (Mengambil kira Cuaca & Sinergi sebenar)
+    const baseSim = simulateLaneBattleResult(i, myLanes, oppLanes, myCamp, null, null);
+    if (!baseSim) continue;
+
+    // 2. Uji setiap Kad Equip dalam tangan pada laluan ini
+    myEquipDeck.forEach(eq => {
+      const withEqSim = simulateLaneBattleResult(i, myLanes, oppLanes, myCamp, eq, null);
+      if (!withEqSim) return;
+
+      const hpGain = withEqSim.myRemHP - baseSim.myRemHP;
+      let priorityScore = 0;
+      let explanation = '';
+
+      // KES 1: TERBALIKKAN KEPUTUSAN DARIPADA KALAH/SERI KEPADA MENANG! (Paling Penting & Logik)
+      if ((baseSim.outcome === 'lose' || baseSim.outcome === 'draw') && withEqSim.outcome === 'win') {
+        priorityScore = 1000 + withEqSim.netAdvantage;
+        explanation = `🎯 <strong>Tukar Kalah Jadi MENANG di Laluan ${i + 1}:</strong> Tanpa Equip, <strong>${myCard.name}</strong> (${baseSim.myRemHP} HP) kalah kepada <strong>${oppCard.name}</strong> (${baseSim.oppRemHP} HP). Pasang <strong>${eq.name}</strong> supaya ${myCard.name} menang dengan baki <strong>${withEqSim.myRemHP} HP vs ${withEqSim.oppRemHP} HP</strong>!`;
+      }
+      // KES 2: MENUKAR KALAH TERUK KEPADA SERI
+      else if (baseSim.outcome === 'lose' && withEqSim.outcome === 'draw' && baseSim.oppRemHP >= 150) {
+        priorityScore = 600 + hpGain;
+        explanation = `🛡️ <strong>Sekat Kemenangan Musuh di Laluan ${i + 1}:</strong> Pasang <strong>${eq.name}</strong> pada <strong>${myCard.name}</strong> untuk menumbangkan <strong>${oppCard.name}</strong> serentak (Seri 0 HP) dan menafikan mata laluan musuh!`;
+      }
+      // KES 3: KUKUHKAN KEMENANGAN TIPIS (< 160 HP) & TAMBAH BAKI HP TIE-BREAKER
+      else if (baseSim.outcome === 'win' && baseSim.netAdvantage <= 180 && withEqSim.netAdvantage >= baseSim.netAdvantage + 180) {
+        priorityScore = 450 + (withEqSim.netAdvantage - baseSim.netAdvantage);
+        explanation = `⚔️ <strong>Kukuhkan Laluan Sengit ${i + 1}:</strong> <strong>${myCard.name}</strong> hanya menang tipis ke atas <strong>${oppCard.name}</strong> (${baseSim.myRemHP} vs ${baseSim.oppRemHP} HP). Pasang <strong>${eq.name}</strong> untuk mengunci kemenangan selesa (Baki <strong>${withEqSim.myRemHP} HP</strong>) & bantu Tie-Breaker!`;
+      }
+      // KES 4: TAMBAH BAKI HP TERTINGGI UNTUK TIE-BREAKER
+      else if (hpGain >= 200) {
+        priorityScore = 200 + hpGain;
+        explanation = `💪 <strong>Tambah Baki HP Tie-Breaker di Laluan ${i + 1}:</strong> Pasang <strong>${eq.name}</strong> pada <strong>${myCard.name}</strong> untuk meningkatkan baki HP daripada ${baseSim.myRemHP} HP kepada <strong>${withEqSim.myRemHP} HP</strong>.`;
+      }
+
+      if (priorityScore > 0) {
+        currentSuggestionsList.push({
+          laneIdx: i,
+          equipId: eq.id,
+          equipName: eq.name,
+          score: priorityScore,
+          text: explanation
+        });
+      }
+    });
+  }
+
+  // Susun mengikut skor logik tertinggi
+  currentSuggestionsList.sort((a, b) => b.score - a.score);
+
+  // Tapis supaya setiap laluan/kad tidak berulang secara mengelirukan
+  const uniqueSuggestions = [];
+  const seenKeys = new Set();
+  for (const item of currentSuggestionsList) {
+    const key = `${item.laneIdx}_${item.equipId}`;
+    if (!seenKeys.has(key)) {
+      seenKeys.add(key);
+      uniqueSuggestions.push(item);
+    }
+  }
+  currentSuggestionsList = uniqueSuggestions.slice(0, 6);
+  currentSuggestionIdx = 0;
+}
+
+function updateEquipAdvisorUI() {
+  const popup = document.getElementById('equip-advisor-popup');
+  const txtEl = document.getElementById('advisor-suggestion-text');
+  const applyBtn = document.getElementById('btn-apply-suggestion');
+
+  const isEquipPhase = matchState.phase === 'p1_equip' || matchState.phase === 'p2_equip';
+  if (!isEquipPhase || !advisorEnabled) {
+    popup.classList.remove('show');
+    return;
+  }
+
+  const isP2 = matchState.phase === 'p2_equip';
+  const myEquips = isP2 ? matchState.p2Equips : matchState.p1Equips;
+  const usedCount = myEquips.filter(Boolean).length;
+
+  if (usedCount >= 2) {
+    popup.classList.add('show');
+    txtEl.innerHTML = `✅ <strong>Maksimum 2 Kad Equip telah dipasang!</strong> Tekan butang <strong>Kunci Equip Rahsia</strong> di bawah.`;
+    applyBtn.style.display = 'none';
+    return;
+  }
+
+  generateSmartEquipSuggestions();
+  popup.classList.add('show');
+
+  if (currentSuggestionsList.length > 0) {
+    const sug = currentSuggestionsList[currentSuggestionIdx % currentSuggestionsList.length];
+    txtEl.innerHTML = sug.text;
+    applyBtn.style.display = 'inline-block';
+  } else {
+    txtEl.innerHTML = `💡 Semua laluan anda sudah berada pada kedudukan optimum! Anda boleh memasang mana-mana Equip untuk menambah jumlah baki HP Tie-Breaker.`;
+    applyBtn.style.display = 'none';
+  }
+}
+
+function nextEquipSuggestion() {
+  if (currentSuggestionsList.length <= 1) return;
+  currentSuggestionIdx = (currentSuggestionIdx + 1) % currentSuggestionsList.length;
+  const sug = currentSuggestionsList[currentSuggestionIdx];
+  document.getElementById('advisor-suggestion-text').innerHTML = sug.text;
+  renderBoardRows();
+  renderBottomControls();
+}
+
+function applyRecommendedEquip() {
+  if (currentSuggestionsList.length === 0) return;
+  const sug = currentSuggestionsList[currentSuggestionIdx % currentSuggestionsList.length];
+  const ctx = getActiveTurnContext();
+  if (ctx.equips.filter(Boolean).length >= 2) return;
+
+  const eqIdx = ctx.equipDeck.findIndex(e => e.id === sug.equipId);
+  if (eqIdx === -1) return;
+
+  const [pickedEq] = ctx.equipDeck.splice(eqIdx, 1);
+  if (ctx.equips[sug.laneIdx]) ctx.equipDeck.push(ctx.equips[sug.laneIdx]);
+  ctx.equips[sug.laneIdx] = pickedEq;
+  matchState.selectedHandId = null;
+
+  playCardSFX(pickedEq);
+  renderBattleArena();
+}
+
+/* =========================================================================
+   6. KEADAAN PERLAWANAN & ALIRAN FASA V4
+   ========================================================================= */
+let matchState = {
+  p1Camp: 'bomoh',
+  p2Camp: 'hantu',
+  mode: 'bot',
+  round: 1,
+  p1Score: 0,
+  p2Score: 0,
+  weather: WEATHER_EVENTS[0],
+
+  // Aliran Fasa V4:
+  // 'p1_watak' -> ('p2_watak') -> 'revealing_watak' -> Notifikasi Pass Phone ke P1 -> 'p1_equip' -> ('p2_equip') -> 'ready_clash' -> 'clashing'
+  phase: 'p1_watak',
+  selectedHandId: null,
+
+  p1WatakDeck: [],
+  p1EquipDeck: [],
+  p2WatakDeck: [],
+  p2EquipDeck: [],
+
+  p1Lanes: [null, null, null, null],
+  p2Lanes: [null, null, null, null],
+  p1Equips: [null, null, null, null],
+  p2Equips: [null, null, null, null],
+
+  watakHantuRevealed: false,
+  watakBomohRevealed: false,
+  laneRevealedEquip: [false, false, false, false],
+  laneOutcome: [null, null, null, null]
+};
+
+function chooseCamp(camp) {
+  ensureAudio();
+  matchState.p1Camp = camp;
+  matchState.p2Camp = camp === 'bomoh' ? 'hantu' : 'bomoh';
+  document.getElementById('btn-camp-bomoh').classList.toggle('selected', camp === 'bomoh');
+  document.getElementById('btn-camp-hantu').classList.toggle('selected', camp === 'hantu');
+  refreshPlayerDropdowns();
+}
+
+function chooseMode(mode) {
+  ensureAudio();
+  matchState.mode = mode;
+  ['bot', 'pass', 'online'].forEach(m => {
+    document.getElementById('mode-tab-' + m).classList.toggle('active', m === mode);
+  });
+  document.getElementById('p2-setup-row').style.display = mode === 'pass' ? 'flex' : 'none';
+  if (mode === 'online') {
+    const code = Math.floor(1000 + Math.random() * 9000);
+    alert(`MOD BILIK ONLINE: Kod Bilik [${code}].\nLawan simulasi pintar akan menyertai bilik anda untuk Playtest ini.`);
+  }
+}
+
+function shuffleCards(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startGameMatch() {
+  ensureAudio();
+  startBackgroundMusic();
+  playBattleSFX('gong');
+
+  const p1Bomoh = matchState.p1Camp === 'bomoh';
+  matchState.p1WatakDeck = shuffleCards(p1Bomoh ? WATAK_BOMOH : WATAK_HANTU);
+  matchState.p1EquipDeck = shuffleCards(p1Bomoh ? EQUIP_BOMOH : EQUIP_HANTU);
+  matchState.p2WatakDeck = shuffleCards(p1Bomoh ? WATAK_HANTU : WATAK_BOMOH);
+  matchState.p2EquipDeck = shuffleCards(p1Bomoh ? EQUIP_HANTU : EQUIP_BOMOH);
+
+  matchState.round = 1;
+  matchState.p1Score = 0;
+  matchState.p2Score = 0;
+
+  document.getElementById('home-screen').classList.remove('active');
+  document.getElementById('battle-screen').classList.add('active');
+
+  initNewRound();
+}
+
+function initNewRound() {
+  matchState.p1Lanes = [null, null, null, null];
+  matchState.p2Lanes = [null, null, null, null];
+  matchState.p1Equips = [null, null, null, null];
+  matchState.p2Equips = [null, null, null, null];
+  matchState.watakHantuRevealed = false;
+  matchState.watakBomohRevealed = false;
+  matchState.laneRevealedEquip = [false, false, false, false];
+  matchState.laneOutcome = [null, null, null, null];
+
+  matchState.weather = WEATHER_EVENTS[Math.floor(Math.random() * WEATHER_EVENTS.length)];
+  matchState.phase = 'p1_watak';
+  matchState.selectedHandId = null;
+
+  for (let i = 0; i < 4; i++) {
+    const vp = document.getElementById('vs-pill-' + i);
+    if (vp) {
+      vp.className = 'vs-badge';
+      vp.textContent = 'VS';
+    }
+  }
+
+  renderBattleArena();
+}
+
+function getActiveTurnContext() {
+  const isP2 = matchState.phase === 'p2_watak' || matchState.phase === 'p2_equip';
+  const isEquip = matchState.phase === 'p1_equip' || matchState.phase === 'p2_equip';
+  return {
+    isP2,
+    isEquip,
+    camp: isP2 ? matchState.p2Camp : matchState.p1Camp,
+    watakDeck: isP2 ? matchState.p2WatakDeck : matchState.p1WatakDeck,
+    equipDeck: isP2 ? matchState.p2EquipDeck : matchState.p1EquipDeck,
+    lanes: isP2 ? matchState.p2Lanes : matchState.p1Lanes,
+    equips: isP2 ? matchState.p2Equips : matchState.p1Equips
+  };
+}
+
+function renderCardElementHTML(card, opts = {}) {
+  const {
+    faceDown = false,
+    camp = 'bomoh',
+    selected = false,
+    suggested = false,
+    equipAttached = null,
+    showEquipChip = false,
+    isDefeated = false,
+    isWinner = false,
+    flipAnim = false,
+    allowInspect = true,
+    statPop = false,
+    fusionGlow = false
+  } = opts;
+
+  if (faceDown) {
+    const backIcon = camp === 'bomoh' ? '🗡️' : '👻';
+    const backTitle = camp === 'bomoh' ? 'KEM BOMOH' : 'KEM HANTU';
+    return `
+      <div class="card-back-cover ${camp}">
+        <div class="card-back-emblem">${backIcon}</div>
+        <div class="card-back-label">${backTitle}</div>
+      </div>
+    `;
+  }
+
+  const isEquip = card.id.startsWith('eb_') || card.id.startsWith('eh_');
+  const isBomoh = card.id.startsWith('wb_') || card.id.startsWith('eb_');
+  const campClass = isBomoh ? 'camp-bomoh' : 'camp-hantu';
+  const typeClass = isEquip ? 'type-equip' : 'type-watak';
+
+  const atkTxt = isEquip ? `+${card.atk}` : card.atk;
+  const hpTxt  = isEquip ? `+${card.hp}` : card.hp;
+
+  let equipBadge = '';
+  if (equipAttached && showEquipChip) {
+    equipBadge = `<div class="equip-indicator-chip">⚡${equipAttached.icon}</div>`;
+  }
+
+  // Jika Lajur A dalam Google Sheets mempunyai link gambar (`card.img`), paparkan gambar tersebut!
+  const customImgHTML = card.img
+    ? `<img class="card-custom-img-layer" src="${card.img}" alt="${card.name}" onerror="this.style.display='none'" />`
+    : '';
+
+  return `
+    <div class="card-unit ${campClass} ${typeClass} ${selected ? 'selected-in-hand' : ''} ${suggested ? 'suggested-in-hand' : ''} ${isDefeated ? 'defeated-greyscale' : ''} ${flipAnim ? 'flip-in' : ''} ${fusionGlow ? 'fusion-glow' : ''}">
+      ${customImgHTML}
+      <div class="card-top-stats">
+        <span class="stat-pill atk ${statPop ? 'stat-pop-up' : ''}">⚔️${atkTxt}</span>
+        <span class="stat-pill hp ${statPop ? 'stat-pop-up' : ''}">🛡️${hpTxt}</span>
+      </div>
+      ${equipBadge}
+      ${allowInspect ? `<div class="card-info-btn" onclick="event.stopPropagation();openInspectCard('${card.id}')">i</div>` : ''}
+      <div class="card-center-icon">
+        ${!card.img ? `<div class="card-emoji-art">${card.icon || '🃏'}</div>` : ''}
+        <div class="card-role-tag">${isEquip ? 'KAD EQUIP' : (card.role || 'Watak')}</div>
+      </div>
+      <div class="card-bottom-name">${card.name}</div>
+      ${isDefeated ? `<div class="defeated-stamp"><span>KALAH</span></div>` : ''}
+      ${isWinner ? `<div class="winner-crown-badge">👑 MENANG</div>` : ''}
+    </div>
+  `;
+}
+
+function hasAdjacentSynergy(lanesArr, idx) {
+  const c = lanesArr[idx];
+  if (!c || !c.syn) return false;
+  const left = idx > 0 ? lanesArr[idx - 1] : null;
+  const right = idx < 3 ? lanesArr[idx + 1] : null;
+  return (left && left.id === c.syn) || (right && right.id === c.syn);
+}
+
+function renderBattleArena() {
+  const p1Acc = getAccountById(activeP1Id);
+  const p2Acc = getAccountById(activeP2Id);
+
+  document.getElementById('hud-round-label').textContent = `PUSINGAN ${matchState.round} / 5`;
+  document.getElementById('hud-p1-av').innerHTML = renderAvatarNode(p1Acc);
+  document.getElementById('hud-p1-name').textContent = `${p1Acc.name} (${matchState.p1Camp.toUpperCase()})`;
+
+  if (matchState.mode === 'pass') {
+    document.getElementById('hud-p2-av').innerHTML = renderAvatarNode(p2Acc);
+    document.getElementById('hud-p2-name').textContent = `${p2Acc.name} (${matchState.p2Camp.toUpperCase()})`;
+  } else {
+    document.getElementById('hud-p2-av').innerHTML = matchState.p2Camp === 'hantu' ? '👹' : '👳‍♂️';
+    document.getElementById('hud-p2-name').textContent = `Bot (${matchState.p2Camp.toUpperCase()})`;
+  }
+
+  renderHudDots('hud-p1-dots', matchState.p1Score, matchState.p1Camp);
+  renderHudDots('hud-p2-dots', matchState.p2Score, matchState.p2Camp);
+
+  document.getElementById('hud-weather-bar').innerHTML = `
+    <span>${matchState.weather.icon}</span>
+    <strong>${matchState.weather.name}:</strong>
+    <span>${matchState.weather.desc}</span>
+  `;
+
+  const ctx = getActiveTurnContext();
+  document.getElementById('hud-deck-count').textContent = `${ctx.watakDeck.length}W | ${ctx.equipDeck.length}E`;
+
+  updateEquipAdvisorUI();
+  renderBoardRows();
+  renderBottomControls();
+}
+
+function renderHudDots(elId, score, camp) {
+  const el = document.getElementById(elId);
+  let html = '';
+  for (let i = 0; i < 3; i++) {
+    const cls = i < score ? (camp === 'bomoh' ? 'won-bomoh' : 'won-hantu') : '';
+    html += `<div class="score-dot ${cls}"></div>`;
+  }
+  el.innerHTML = html;
+}
+
+function renderBoardRows() {
+  const topRow = document.getElementById('board-top-row');
+  const botRow = document.getElementById('board-bottom-row');
+  topRow.innerHTML = '';
+  botRow.innerHTML = '';
+
+  const isP2Turn = matchState.phase === 'p2_watak' || matchState.phase === 'p2_equip';
+  const isEquipPhase = matchState.phase === 'p1_equip' || matchState.phase === 'p2_equip';
+
+  let recommendedLane = -1;
+  if (isEquipPhase && advisorEnabled && currentSuggestionsList.length > 0) {
+    recommendedLane = currentSuggestionsList[currentSuggestionIdx % currentSuggestionsList.length].laneIdx;
+  }
+
+  for (let i = 0; i < 4; i++) {
+    const topLanes = isP2Turn ? matchState.p1Lanes : matchState.p2Lanes;
+    const topEquips = isP2Turn ? matchState.p1Equips : matchState.p2Equips;
+    const topCamp = isP2Turn ? matchState.p1Camp : matchState.p2Camp;
+
+    const botLanes = isP2Turn ? matchState.p2Lanes : matchState.p1Lanes;
+    const botEquips = isP2Turn ? matchState.p2Equips : matchState.p1Equips;
+    const botCamp = isP2Turn ? matchState.p2Camp : matchState.p1Camp;
+
+    let showTopWatak = false;
+    let showBotWatak = false;
+
+    if (matchState.phase === 'p1_watak' || matchState.phase === 'p2_watak') {
+      showTopWatak = false;
+      showBotWatak = true;
+    } else if (matchState.phase === 'revealing_watak') {
+      showTopWatak = topCamp === 'hantu' ? matchState.watakHantuRevealed : matchState.watakBomohRevealed;
+      showBotWatak = botCamp === 'hantu' ? matchState.watakHantuRevealed : matchState.watakBomohRevealed;
+    } else {
+      showTopWatak = true;
+      showBotWatak = true;
+    }
+
+    const showTopEquip = matchState.phase === 'clashing' && matchState.laneRevealedEquip[i];
+    const showBotEquip = isEquipPhase || (matchState.phase === 'clashing' && matchState.laneRevealedEquip[i]);
+
+    const topSlot = document.createElement('div');
+    topSlot.className = `lane-slot ${topCamp}-zone`;
+    const topCard = topLanes[i];
+    if (topCard) {
+      const out = matchState.laneOutcome[i];
+      const topDead = out && ((out === 'p1' && !isP2Turn) || (out === 'p2' && isP2Turn) || out === 'draw');
+      const topWin  = out && ((out === 'p2' && !isP2Turn) || (out === 'p1' && isP2Turn));
+      topSlot.innerHTML = renderCardElementHTML(topCard, {
+        faceDown: !showTopWatak,
+        camp: topCamp,
+        equipAttached: topEquips[i],
+        showEquipChip: showTopEquip,
+        isDefeated: topDead,
+        isWinner: topWin,
+        flipAnim: matchState.phase === 'revealing_watak' && showTopWatak
+      });
+    } else {
+      topSlot.innerHTML = `<div class="slot-placeholder-label">Lawan ${i + 1}</div>`;
+    }
+    topRow.appendChild(topSlot);
+
+    const synGlow = showBotWatak && hasAdjacentSynergy(botLanes, i);
+    const isRecSlot = i === recommendedLane;
+    const botSlot = document.createElement('div');
+    botSlot.className = `lane-slot ${botCamp}-zone ${matchState.selectedHandId ? 'highlight-target' : ''} ${isRecSlot ? 'recommended-slot' : ''} ${synGlow ? 'synergy-active' : ''}`;
+    botSlot.onclick = () => onSlotTap(i);
+
+    const botCard = botLanes[i];
+    if (botCard) {
+      const out = matchState.laneOutcome[i];
+      const botDead = out && ((out === 'p2' && !isP2Turn) || (out === 'p1' && isP2Turn) || out === 'draw');
+      const botWin  = out && ((out === 'p1' && !isP2Turn) || (out === 'p2' && isP2Turn));
+      botSlot.innerHTML = renderCardElementHTML(botCard, {
+        faceDown: !showBotWatak,
+        camp: botCamp,
+        equipAttached: botEquips[i],
+        showEquipChip: showBotEquip,
+        isDefeated: botDead,
+        isWinner: botWin,
+        flipAnim: matchState.phase === 'revealing_watak' && showBotWatak
+      });
+    } else {
+      botSlot.innerHTML = `<div class="slot-placeholder-label">Laluan ${i + 1}<br/>(Tap Letak)</div>`;
+    }
+    botRow.appendChild(botSlot);
+  }
+}
+
+function renderBottomControls() {
+  const instr = document.getElementById('hud-phase-instruction');
+  const strip = document.getElementById('hand-strip');
+  const btnConfirm = document.getElementById('btn-confirm-turn');
+  const btnClash = document.getElementById('btn-start-clash');
+  const btnClear = document.getElementById('btn-clear-slots');
+  const btnAuto = document.getElementById('btn-auto-pick');
+
+  if (matchState.phase === 'revealing_watak') {
+    instr.textContent = 'Mendedahkan Kad Watak Hantu & Bomoh...';
+    strip.innerHTML = `<div style="margin:auto;color:var(--gold-light);font-size:11px;text-align:center;">Sila perhatikan barisan watak lawan di atas meja sebelum memilih Kad Equip!</div>`;
+    btnConfirm.style.display = 'none';
+    btnClear.style.display = 'none';
+    btnAuto.style.display = 'none';
+    btnClash.style.display = 'none';
+    return;
+  }
+
+  if (matchState.phase === 'ready_clash' || matchState.phase === 'clashing') {
+    instr.textContent = 'Kad Equip Rahsia Dikunci! Sedia Bertempur!';
+    strip.innerHTML = `<div style="margin:auto;color:var(--gold-light);font-size:11px;text-align:center;">🔒 Semua Kad Equip disembunyikan daripada pihak lawan. Tekan <strong>SERANG!</strong> untuk mendedahkan satu per satu!</div>`;
+    btnConfirm.style.display = 'none';
+    btnClear.style.display = 'none';
+    btnAuto.style.display = 'none';
+    btnClash.style.display = matchState.phase === 'ready_clash' ? 'block' : 'none';
+    return;
+  }
+
+  btnConfirm.style.display = 'block';
+  btnClear.style.display = 'block';
+  btnAuto.style.display = 'block';
+  btnClash.style.display = 'none';
+
+  const ctx = getActiveTurnContext();
+  const pName = ctx.isP2 ? getAccountById(activeP2Id).name : getAccountById(activeP1Id).name;
+
+  let recommendedEquipId = null;
+  if (ctx.isEquip && advisorEnabled && currentSuggestionsList.length > 0) {
+    recommendedEquipId = currentSuggestionsList[currentSuggestionIdx % currentSuggestionsList.length].equipId;
+  }
+
+  if (!ctx.isEquip) {
+    const count = ctx.lanes.filter(Boolean).length;
+    instr.textContent = `${pName}: Pilih 4 Kad Watak (${count}/4 dipasang)`;
+    btnConfirm.textContent = '✅ SAHKAN 4 WATAK';
+  } else {
+    const eqCount = ctx.equips.filter(Boolean).length;
+    instr.textContent = `${pName}: Pilih Maks 2 Equip Rahsia (${eqCount}/2)`;
+    btnConfirm.textContent = '🔒 KUNCI EQUIP RAHSIA';
+  }
+
+  const deckList = ctx.isEquip ? ctx.equipDeck : ctx.watakDeck;
+  strip.innerHTML = '';
+
+  deckList.forEach(card => {
+    const cell = document.createElement('div');
+    cell.className = 'hand-slot-item';
+    const isSel = matchState.selectedHandId === card.id;
+    const isSug = card.id === recommendedEquipId;
+    cell.innerHTML = renderCardElementHTML(card, { selected: isSel, suggested: isSug, camp: ctx.camp });
+    cell.onclick = () => {
+      playCardSFX(card);
+      matchState.selectedHandId = (matchState.selectedHandId === card.id) ? null : card.id;
+      renderBoardRows();
+      renderBottomControls();
+    };
+    strip.appendChild(cell);
+  });
+}
+
+function onSlotTap(laneIdx) {
+  const ctx = getActiveTurnContext();
+
+  if (matchState.phase === 'p1_watak' || matchState.phase === 'p2_watak') {
+    if (matchState.selectedHandId) {
+      const idx = ctx.watakDeck.findIndex(c => c.id === matchState.selectedHandId);
+      if (idx === -1) return;
+      const [picked] = ctx.watakDeck.splice(idx, 1);
+      if (ctx.lanes[laneIdx]) ctx.watakDeck.push(ctx.lanes[laneIdx]);
+      ctx.lanes[laneIdx] = picked;
+      matchState.selectedHandId = null;
+      playBattleSFX('flip');
+      renderBattleArena();
+    } else if (ctx.lanes[laneIdx]) {
+      ctx.watakDeck.push(ctx.lanes[laneIdx]);
+      ctx.lanes[laneIdx] = null;
+      renderBattleArena();
+    }
+    return;
+  }
+
+  if (matchState.phase === 'p1_equip' || matchState.phase === 'p2_equip') {
+    if (!ctx.lanes[laneIdx]) return;
+    if (matchState.selectedHandId) {
+      const eqCount = ctx.equips.filter(Boolean).length;
+      if (!ctx.equips[laneIdx] && eqCount >= 2) {
+        alert('Maksimum 2 Kad Equip sahaja dibenarkan setiap pusingan!');
+        return;
+      }
+      const idx = ctx.equipDeck.findIndex(c => c.id === matchState.selectedHandId);
+      if (idx === -1) return;
+      const [pickedEq] = ctx.equipDeck.splice(idx, 1);
+      if (ctx.equips[laneIdx]) ctx.equipDeck.push(ctx.equips[laneIdx]);
+      ctx.equips[laneIdx] = pickedEq;
+      matchState.selectedHandId = null;
+      playBattleSFX('flip');
+      renderBattleArena();
+    } else if (ctx.equips[laneIdx]) {
+      ctx.equipDeck.push(ctx.equips[laneIdx]);
+      ctx.equips[laneIdx] = null;
+      renderBattleArena();
+    }
+  }
+}
+
+function autoPickCards() {
+  const ctx = getActiveTurnContext();
+  if (!ctx.isEquip) {
+    for (let i = 0; i < 4; i++) {
+      if (!ctx.lanes[i] && ctx.watakDeck.length > 0) {
+        ctx.lanes[i] = ctx.watakDeck.shift();
+      }
+    }
+  } else {
+    while (ctx.equips.filter(Boolean).length < 2 && ctx.equipDeck.length > 0) {
+      generateSmartEquipSuggestions();
+      if (currentSuggestionsList.length > 0) {
+        const best = currentSuggestionsList[0];
+        const idx = ctx.equipDeck.findIndex(e => e.id === best.equipId);
+        if (idx !== -1 && !ctx.equips[best.laneIdx]) {
+          ctx.equips[best.laneIdx] = ctx.equipDeck.splice(idx, 1)[0];
+          continue;
+        }
+      }
+      const emptySlot = [0, 1, 2, 3].find(s => !ctx.equips[s]);
+      if (emptySlot !== undefined) ctx.equips[emptySlot] = ctx.equipDeck.shift();
+      else break;
+    }
+  }
+  playBattleSFX('flip');
+  matchState.selectedHandId = null;
+  renderBattleArena();
+}
+
+function clearCurrentSlots() {
+  const ctx = getActiveTurnContext();
+  if (!ctx.isEquip) {
+    for (let i = 0; i < 4; i++) {
+      if (ctx.lanes[i]) {
+        ctx.watakDeck.push(ctx.lanes[i]);
+        ctx.lanes[i] = null;
+      }
+    }
+  } else {
+    for (let i = 0; i < 4; i++) {
+      if (ctx.equips[i]) {
+        ctx.equipDeck.push(ctx.equips[i]);
+        ctx.equips[i] = null;
+      }
+    }
+  }
+  matchState.selectedHandId = null;
+  renderBattleArena();
+}
+
+/* =========================================================================
+   7. PENDEDAHAN WATAK (5S HANTU -> 5S BOMOH) + NOTIFIKASI PASS PHONE KE P1
+   ========================================================================= */
+let activeWaitResolver = null;
+
+function waitMs(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+function skipWaitPhase() {
+  if (activeWaitResolver) {
+    activeWaitResolver();
+    activeWaitResolver = null;
+  }
+}
+
+async function runCountdownBar(seconds, barEl, subEl, prefixText = '') {
+  const steps = seconds * 4;
+  for (let s = 0; s <= steps; s++) {
+    const rem = Math.ceil((steps - s) / 4);
+    if (barEl) barEl.style.width = `${Math.max(0, ((steps - s) / steps) * 100)}%`;
+    if (subEl) {
+      subEl.textContent = prefixText ? `${prefixText} (${rem}s)` : `${rem}s`;
+    }
+    const skipped = await Promise.race([
+      waitMs(250).then(() => false),
+      new Promise(res => { activeWaitResolver = () => res(true); })
+    ]);
+    if (skipped) break;
+  }
+  activeWaitResolver = null;
+}
+
+async function confirmTurnStep() {
+  if (matchState.phase === 'p1_watak') {
+    if (matchState.p1Lanes.some(c => !c)) {
+      alert('Sila lengkapkan kesemua 4 Kad Watak di Laluan 1 hingga 4 terlebih dahulu!');
+      return;
+    }
+    playBattleSFX('gong');
+    if (matchState.mode === 'pass') {
+      matchState.phase = 'p2_watak';
+      matchState.selectedHandId = null;
+      const p2Name = getAccountById(activeP2Id).name;
+      openPassCurtain(`GILIRAN ${p2Name.toUpperCase()} (PILIH 4 WATAK)`, `Serahkan telefon kepada ${p2Name} untuk menyusun 4 Kad Watak secara tertutup.`);
+    } else {
+      for (let i = 0; i < 4; i++) {
+        matchState.p2Lanes[i] = matchState.p2WatakDeck.shift();
+      }
+      await startCharacterRevealSequence();
+    }
+    return;
+  }
+
+  if (matchState.phase === 'p2_watak') {
+    if (matchState.p2Lanes.some(c => !c)) {
+      alert('Sila lengkapkan kesemua 4 Kad Watak di Laluan 1 hingga 4!');
+      return;
+    }
+    playBattleSFX('gong');
+    await startCharacterRevealSequence();
+    return;
+  }
+
+  if (matchState.phase === 'p1_equip') {
+    playBattleSFX('gong');
+    if (matchState.mode === 'pass') {
+      matchState.phase = 'p2_equip';
+      matchState.selectedHandId = null;
+      const p2Name = getAccountById(activeP2Id).name;
+      openPassCurtain(`SERAHKAN TELEFON KE ${p2Name.toUpperCase()} (PILIH EQUIP)`, `Kedudukan Equip Pemain 1 telah disembunyikan. Sila serahkan telefon kepada ${p2Name} untuk memilih maksimum 2 Kad Equip secara rahsia!`);
+    } else {
+      botSmartEquipSelection();
+      matchState.phase = 'ready_clash';
+      renderBattleArena();
+    }
+    return;
+  }
+
+  if (matchState.phase === 'p2_equip') {
+    playBattleSFX('gong');
+    matchState.phase = 'ready_clash';
+    matchState.selectedHandId = null;
+    openPassCurtain('SEDIA UNTUK SERANG!', 'Kedua-dua pemain telah mengunci Kad Equip secara rahsia. Tekan Sedia dan mulakan SERANG!');
+  }
+}
+
+async function startCharacterRevealSequence() {
+  matchState.phase = 'revealing_watak';
+  matchState.watakHantuRevealed = false;
+  matchState.watakBomohRevealed = false;
+  renderBattleArena();
+
+  const banner = document.getElementById('reveal-banner-overlay');
+  const titleEl = document.getElementById('reveal-banner-title');
+  const subEl = document.getElementById('reveal-banner-sub');
+  const barEl = document.getElementById('reveal-timer-bar');
+
+  banner.classList.add('show');
+
+  // 1. Flip Kad Watak HANTU terbuka dahulu (5 Saat)
+  playBattleSFX('flip');
+  matchState.watakHantuRevealed = true;
+  renderBoardRows();
+  titleEl.textContent = '👻 KAD WATAK HANTU DIDEDAHKAN!';
+  await runCountdownBar(5, barEl, subEl, 'Perhatikan barisan Watak Hantu di Laluan 1–4');
+
+  // 2. Flip Kad Watak BOMOH terbuka (5 Saat)
+  playBattleSFX('flip');
+  matchState.watakBomohRevealed = true;
+  renderBoardRows();
+  titleEl.textContent = '🗡️ KAD WATAK BOMOH DIDEDAHKAN!';
+  await runCountdownBar(5, barEl, subEl, 'Semua Watak kini terbuka! Sedia untuk Fasa Equip');
+
+  banner.classList.remove('show');
+
+  // Masuk ke Fasa Pilih Kad Equip Pemain 1 & Paparkan Notifikasi Pass Phone ke Pemain 1!
+  matchState.phase = 'p1_equip';
+  matchState.selectedHandId = null;
+  const p1Name = getAccountById(activeP1Id).name;
+  openPassCurtain(
+    `SERAHKAN TELEFON KE ${p1Name.toUpperCase()} (PILIH EQUIP)`,
+    `Kedua-dua barisan Kad Watak Hantu dan Bomoh telah didedahkan! Sila serahkan telefon semula kepada ${p1Name} (Pemain 1) untuk menyusun strategi Kad Equip secara rahsia.`
+  );
+}
+
+function botSmartEquipSelection() {
+  let count = 0;
+  for (let i = 0; i < 4 && count < 2; i++) {
+    if (matchState.p2EquipDeck.length === 0) break;
+    const base = simulateLaneBattleResult(i, matchState.p2Lanes, matchState.p1Lanes, matchState.p2Camp, null, null);
+    if (base && (base.outcome === 'lose' || base.outcome === 'draw')) {
+      matchState.p2Equips[i] = matchState.p2EquipDeck.shift();
+      count++;
+    }
+  }
+  while (count < 2 && matchState.p2EquipDeck.length > 0) {
+    const emptyIdx = [0, 1, 2, 3].find(idx => !matchState.p2Equips[idx]);
+    if (emptyIdx === undefined) break;
+    matchState.p2Equips[emptyIdx] = matchState.p2EquipDeck.shift();
+    count++;
+  }
+}
+
+function openPassCurtain(title, desc) {
+  document.getElementById('pass-modal-title').textContent = title;
+  document.getElementById('pass-modal-desc').textContent = desc;
+  openModal('pass-modal');
+}
+
+function closePassModal() {
+  closeModal('pass-modal');
+  renderBattleArena();
+}
+
+/* =========================================================================
+   8. PERTEMPURAN SINEMATIK TENGAH SKRIN (5S WATAK -> 5S FULL-SIZE EQUIP STACK + LIVE STAT UPDATE -> 10S KEPUTUSAN)
+   ========================================================================= */
+async function startSequentialBattle() {
+  if (matchState.phase !== 'ready_clash') return;
+  matchState.phase = 'clashing';
+  renderBattleArena();
+
+  let p1WinsCount = 0;
+  let p2WinsCount = 0;
+  let p1TotalRemHP = 0;
+  let p2TotalRemHP = 0;
+  let roundSummaryLogs = [];
+
+  const topRowSlots = document.getElementById('board-top-row').children;
+  const botRowSlots = document.getElementById('board-bottom-row').children;
+
+  for (let i = 0; i < 4; i++) {
+    topRowSlots[i].classList.add('active-battle-lane');
+    botRowSlots[i].classList.add('active-battle-lane');
+
+    const p1IsBomoh = matchState.p1Camp === 'bomoh';
+    const hantuOrig = p1IsBomoh ? matchState.p2Lanes[i] : matchState.p1Lanes[i];
+    const bomohOrig = p1IsBomoh ? matchState.p1Lanes[i] : matchState.p2Lanes[i];
+    const hantuEq   = p1IsBomoh ? matchState.p2Equips[i] : matchState.p1Equips[i];
+    const bomohEq   = p1IsBomoh ? matchState.p1Equips[i] : matchState.p2Equips[i];
+
+    // Kira statistik awal dengan kesan Cuaca + Sinergi (Sebelum Equip)
+    const bPreEq = { ...bomohOrig };
+    const hPreEq = { ...hantuOrig };
+    matchState.weather.apply(bPreEq, hPreEq);
+
+    const bomohLanesArr = p1IsBomoh ? matchState.p1Lanes : matchState.p2Lanes;
+    const hantuLanesArr = p1IsBomoh ? matchState.p2Lanes : matchState.p1Lanes;
+    if (hasAdjacentSynergy(bomohLanesArr, i)) { bPreEq.atk += 150; bPreEq.hp += 100; }
+    if (hasAdjacentSynergy(hantuLanesArr, i)) { hPreEq.atk += 150; hPreEq.hp += 100; }
+
+    // Buka Pentas Tengah Skrin
+    const overlay = document.getElementById('duel-theater-overlay');
+    const stageTitle = document.getElementById('duel-stage-title');
+    const holderHantu = document.getElementById('duel-holder-hantu');
+    const holderBomoh = document.getElementById('duel-holder-bomoh');
+    const narrativeBox = document.getElementById('duel-narrative-box');
+    const fxSpot = document.getElementById('duel-clash-fx-spot');
+    const cdRow = document.getElementById('duel-countdown-row');
+    const timerLbl = document.getElementById('duel-timer-label');
+    const timerBar = document.getElementById('duel-timer-bar');
+
+    stageTitle.textContent = `PERTEMPURAN LALUAN ${i + 1}`;
+    holderHantu.className = 'duel-card-holder pos-left';
+    holderBomoh.className = 'duel-card-holder pos-right';
+
+    // FASA 1 (5 SAAT): Paparkan Kedua-dua Kad Watak di Tengah Skrin Supaya Pemain Sempat Baca!
+    holderHantu.innerHTML = renderCardElementHTML({ ...hantuOrig, atk: hPreEq.atk, hp: hPreEq.hp }, { allowInspect: false });
+    holderBomoh.innerHTML = renderCardElementHTML({ ...bomohOrig, atk: bPreEq.atk, hp: bPreEq.hp }, { allowInspect: false });
+    narrativeBox.innerHTML = `
+      <strong>Fasa 1 — Pertembungan Watak Laluan ${i + 1}:</strong><br/>
+      👻 <strong>${hantuOrig.name}</strong> (⚔️${hPreEq.atk} | 🛡️${hPreEq.hp}) berdepan 🗡️ <strong>${bomohOrig.name}</strong> (⚔️${bPreEq.atk} | 🛡️${bPreEq.hp}).
+    `;
+    overlay.classList.add('active');
+    cdRow.style.display = 'flex';
+    await runCountdownBar(5, timerBar, timerLbl, '');
+
+    // FASA 2 (5 SAAT): Keluarkan Kad Equip Saiz Penuh Bertindih Di Atas Kad Watak + Efek Sparkle + Live Stat Update!
+    matchState.laneRevealedEquip[i] = true;
+    renderBoardRows();
+
+    const bPostEq = { ...bPreEq };
+    const hPostEq = { ...hPreEq };
+
+    const bSilenced = hantuEq && hantuEq.effect === 'silence';
+    const hSilenced = bomohEq && bomohEq.effect === 'silence';
+    const actBomohEq = bSilenced ? null : bomohEq;
+    const actHantuEq = hSilenced ? null : hantuEq;
+
+    if (actBomohEq) {
+      bPostEq.atk += actBomohEq.atk;
+      bPostEq.hp  += actBomohEq.hp;
+      if (actBomohEq.effect === 'weaken') hPostEq.atk = Math.max(0, hPostEq.atk - 160);
+    }
+    if (actHantuEq) {
+      hPostEq.atk += actHantuEq.atk;
+      hPostEq.hp  += actHantuEq.hp;
+      if (actHantuEq.effect === 'weaken') bPostEq.atk = Math.max(0, bPostEq.atk - 160);
+    }
+
+    const bAntiTrap = actBomohEq && actBomohEq.effect === 'anti_trap';
+    const hAntiTrap = actHantuEq && actHantuEq.effect === 'anti_trap';
+
+    if (!matchState.weather.noStun) {
+      if (actBomohEq && actBomohEq.effect === 'stun' && !hAntiTrap) hPostEq.atk = 0;
+      if (actHantuEq && actHantuEq.effect === 'stun' && !bAntiTrap) bPostEq.atk = 0;
+    }
+    if (actBomohEq && actBomohEq.effect === 'reflect' && !hAntiTrap) hPostEq.hp = Math.max(0, hPostEq.hp - 220);
+    if (actHantuEq && actHantuEq.effect === 'reflect' && !bAntiTrap) bPostEq.hp = Math.max(0, bPostEq.hp - 220);
+
+    if (hantuEq || bomohEq) {
+      playBattleSFX('sparkle_fusion');
+      let eqLogLines = [];
+
+      // Kemas kini nilai ⚔️ ATK dan 🛡️ HP pada Kad Watak secara langsung + Letak Kad Equip Saiz Penuh Bertindih di Bawahnya!
+      holderHantu.innerHTML = renderCardElementHTML(
+        { ...hantuOrig, atk: hPostEq.atk, hp: hPostEq.hp },
+        { allowInspect: false, statPop: true, fusionGlow: !!hantuEq }
+      );
+      if (hantuEq) {
+        playCardSFX(hantuEq);
+        holderHantu.insertAdjacentHTML('beforeend', `
+          <div class="stacked-full-equip-card">${renderCardElementHTML(hantuEq, { allowInspect: false })}</div>
+          <div class="fusion-sparkle-ring">✨⚡✨</div>
+        `);
+        eqLogLines.push(`👻 <strong>${hantuOrig.name}</strong> bergabung dengan <strong>${hantuEq.name}</strong> ➔ ⚔️${hPostEq.atk} | 🛡️${hPostEq.hp}!`);
+      }
+
+      holderBomoh.innerHTML = renderCardElementHTML(
+        { ...bomohOrig, atk: bPostEq.atk, hp: bPostEq.hp },
+        { allowInspect: false, statPop: true, fusionGlow: !!bomohEq }
+      );
+      if (bomohEq) {
+        playCardSFX(bomohEq);
+        holderBomoh.insertAdjacentHTML('beforeend', `
+          <div class="stacked-full-equip-card">${renderCardElementHTML(bomohEq, { allowInspect: false })}</div>
+          <div class="fusion-sparkle-ring">✨⚡✨</div>
+        `);
+        eqLogLines.push(`🗡️ <strong>${bomohOrig.name}</strong> bergabung dengan <strong>${bomohEq.name}</strong> ➔ ⚔️${bPostEq.atk} | 🛡️${bPostEq.hp}!`);
+      }
+
+      narrativeBox.innerHTML = `<strong>Fasa 2 — Cantuman Kad Equip & Perubahan Kuasa:</strong><br/>` + eqLogLines.join('<br/>');
+      await runCountdownBar(5, timerBar, timerLbl, '');
+    } else {
+      narrativeBox.innerHTML = `<strong>Fasa 2 — Semakan Equip:</strong><br/>Tiada Kad Equip dipasang pada Laluan ${i + 1}. Statistik kekal!`;
+      await runCountdownBar(2, timerBar, timerLbl, '');
+    }
+
+    // FASA 3: Animasi Berlaga & Keputusan Pemenang Laluan (10 Saat)
+    cdRow.style.display = 'none';
+    playBattleSFX('war_clash');
+    holderHantu.className = 'duel-card-holder clash-left';
+    holderBomoh.className = 'duel-card-holder clash-right';
+    fxSpot.innerHTML = `<div class="clash-burst-fx">💥⚔️💥</div>`;
+    await waitMs(550);
+    fxSpot.innerHTML = '';
+
+    const remBomohHP = Math.max(0, bPostEq.hp - hPostEq.atk);
+    const remHantuHP = Math.max(0, hPostEq.hp - bPostEq.atk);
+
+    let winnerCamp = 'draw';
+    if (remBomohHP > remHantuHP) winnerCamp = 'bomoh';
+    else if (remHantuHP > remBomohHP) winnerCamp = 'hantu';
+
+    playBattleSFX('ko_slam');
+    let resultHeadline = '';
+
+    if (winnerCamp === 'bomoh') {
+      holderBomoh.className = 'duel-card-holder winner-front';
+      holderHantu.className = 'duel-card-holder loser-back';
+      holderBomoh.innerHTML = renderCardElementHTML({ ...bomohOrig, atk: bPostEq.atk, hp: remBomohHP }, { isWinner: true, allowInspect: false });
+      holderHantu.innerHTML = renderCardElementHTML({ ...hantuOrig, atk: hPostEq.atk, hp: remHantuHP }, { isDefeated: true, allowInspect: false });
+      resultHeadline = `✅ <strong>${bomohOrig.name} (BOMOH) MENANG LALUAN ${i + 1}!</strong> (Baki ${remBomohHP} HP vs ${remHantuHP} HP)`;
+    } else if (winnerCamp === 'hantu') {
+      holderHantu.className = 'duel-card-holder winner-front';
+      holderBomoh.className = 'duel-card-holder loser-back';
+      holderHantu.innerHTML = renderCardElementHTML({ ...hantuOrig, atk: hPostEq.atk, hp: remHantuHP }, { isWinner: true, allowInspect: false });
+      holderBomoh.innerHTML = renderCardElementHTML({ ...bomohOrig, atk: bPostEq.atk, hp: remBomohHP }, { isDefeated: true, allowInspect: false });
+      resultHeadline = `🔥 <strong>${hantuOrig.name} (HANTU) MENANG LALUAN ${i + 1}!</strong> (Baki ${remHantuHP} HP vs ${remBomohHP} HP)`;
+    } else {
+      holderHantu.className = 'duel-card-holder pos-left';
+      holderBomoh.className = 'duel-card-holder pos-right';
+      holderHantu.innerHTML = renderCardElementHTML({ ...hantuOrig, atk: hPostEq.atk, hp: remHantuHP }, { isDefeated: true, allowInspect: false });
+      holderBomoh.innerHTML = renderCardElementHTML({ ...bomohOrig, atk: bPostEq.atk, hp: remBomohHP }, { isDefeated: true, allowInspect: false });
+      resultHeadline = `⚖️ <strong>LALUAN ${i + 1} SERI!</strong> Kedua-dua watak terikat (${remBomohHP} HP).`;
+    }
+
+    narrativeBox.innerHTML = `
+      <div>⚔️ <strong>${bomohOrig.name}</strong> (${bPostEq.atk} ATK) vs <strong>${hantuOrig.name}</strong> (${hPostEq.atk} ATK)</div>
+      <div style="margin-top:4px;">${resultHeadline}</div>
+    `;
+
+    const p1Rem = p1IsBomoh ? remBomohHP : remHantuHP;
+    const p2Rem = p1IsBomoh ? remHantuHP : remBomohHP;
+    p1TotalRemHP += p1Rem;
+    p2TotalRemHP += p2Rem;
+
+    const vsPill = document.getElementById('vs-pill-' + i);
+    if ((winnerCamp === 'bomoh' && p1IsBomoh) || (winnerCamp === 'hantu' && !p1IsBomoh)) {
+      p1WinsCount++;
+      matchState.laneOutcome[i] = 'p1';
+      vsPill.className = 'vs-badge p1-win';
+      vsPill.textContent = 'P1 MENANG';
+    } else if ((winnerCamp === 'hantu' && p1IsBomoh) || (winnerCamp === 'bomoh' && !p1IsBomoh)) {
+      p2WinsCount++;
+      matchState.laneOutcome[i] = 'p2';
+      vsPill.className = 'vs-badge p2-win';
+      vsPill.textContent = 'P2 MENANG';
+    } else {
+      matchState.laneOutcome[i] = 'draw';
+      vsPill.textContent = 'SERI';
+    }
+
+    roundSummaryLogs.push(`<li><strong>Laluan ${i + 1}:</strong> ${resultHeadline}</li>`);
+
+    cdRow.style.display = 'flex';
+    await runCountdownBar(10, timerBar, timerLbl, '');
+    cdRow.style.display = 'none';
+
+    overlay.classList.remove('active');
+    topRowSlots[i].classList.remove('active-battle-lane');
+    botRowSlots[i].classList.remove('active-battle-lane');
+    renderBoardRows();
+    await waitMs(400);
+  }
+
+  // Penentuan Pemenang Pusingan & Tie-Breaker HP
+  let roundWinner = 'draw';
+  let tieBreakHTML = '';
+
+  if (p1WinsCount > p2WinsCount) roundWinner = 'p1';
+  else if (p2WinsCount > p1WinsCount) roundWinner = 'p2';
+  else {
+    if (p1TotalRemHP > p2TotalRemHP) {
+      roundWinner = 'p1';
+      tieBreakHTML = `<div style="background:#dcfce7;color:#14532d;padding:7px;border-radius:6px;margin-top:6px;font-weight:800;">
+        ⚖️ PEMUTUS SERI (TIE-BREAKER): Seri ${p1WinsCount}-${p2WinsCount}, P1 menang melalui Jumlah Baki HP (${p1TotalRemHP} vs ${p2TotalRemHP})!
+      </div>`;
+    } else if (p2TotalRemHP > p1TotalRemHP) {
+      roundWinner = 'p2';
+      tieBreakHTML = `<div style="background:#fee2e2;color:#7f1d1d;padding:7px;border-radius:6px;margin-top:6px;font-weight:800;">
+        ⚖️ PEMUTUS SERI (TIE-BREAKER): Seri ${p1WinsCount}-${p2WinsCount}, P2 menang melalui Jumlah Baki HP (${p2TotalRemHP} vs ${p1TotalRemHP})!
+      </div>`;
+    }
+  }
+
+  if (roundWinner === 'p1') matchState.p1Score++;
+  if (roundWinner === 'p2') matchState.p2Score++;
+  renderBattleArena();
+
+  showRoundSummaryModal(roundWinner, p1WinsCount, p2WinsCount, roundSummaryLogs.join(''), tieBreakHTML);
+}
+
+/* =========================================================================
+   9. MODAL KEPUTUSAN PUSINGAN (AVATAR DI SEBELAH TROFI) & AUTO-BUKA RANKING
+   ========================================================================= */
+function showRoundSummaryModal(roundWinner, p1W, p2W, logsHTML, tieBreakHTML) {
+  playBattleSFX('gong');
+  const p1Acc = getAccountById(activeP1Id);
+  const p2Acc = matchState.mode === 'pass'
+    ? getAccountById(activeP2Id)
+    : { id: 'bot', name: 'Bot', avatar: '', icon: matchState.p2Camp === 'hantu' ? '👹' : '👳‍♂️', pt: 1000 };
+
+  const matchOver = matchState.p1Score >= 3 || matchState.p2Score >= 3 || matchState.round >= 5;
+  const titleEl = document.getElementById('round-res-title');
+  const iconEl = document.getElementById('round-res-icon');
+  const avatarEl = document.getElementById('round-res-avatar');
+  const sumEl = document.getElementById('round-res-summary');
+  const nextBtn = document.getElementById('round-res-next-btn');
+
+  // Tentukan Avatar Juara Pusingan/Perlawanan di sebelah Trofi 🏆
+  const winnerAcc = (!matchOver)
+    ? (roundWinner === 'p1' ? p1Acc : (roundWinner === 'p2' ? p2Acc : p1Acc))
+    : (matchState.p1Score >= matchState.p2Score ? p1Acc : p2Acc);
+
+  avatarEl.innerHTML = renderAvatarNode(winnerAcc);
+
+  if (!matchOver) {
+    iconEl.textContent = roundWinner === 'draw' ? '⚖️' : '🏆';
+    titleEl.textContent = roundWinner === 'p1'
+      ? `${p1Acc.name.toUpperCase()} MENANG PUSINGAN ${matchState.round}!`
+      : roundWinner === 'p2'
+      ? `${p2Acc.name.toUpperCase()} MENANG PUSINGAN ${matchState.round}!`
+      : `PUSINGAN ${matchState.round} SERI!`;
+
+    sumEl.innerHTML = `
+      <div style="font-weight:800;margin-bottom:6px;">Skor Laluan: ${p1W} - ${p2W} | Skor Pusingan (Best-of-5): ${matchState.p1Score} - ${matchState.p2Score}</div>
+      <ul>${logsHTML}</ul>
+      ${tieBreakHTML}
+    `;
+    nextBtn.textContent = `MASUK PUSINGAN ${matchState.round + 1} ➔`;
+    nextBtn.onclick = () => {
+      closeModal('round-result-modal');
+      matchState.round++;
+      initNewRound();
+    };
+  } else {
+    // PERLAWANAN TAMAT: Kira Kedudukan Ranking Lama vs Baharu & Semak Kenaikan Gelaran!
+    const oldOrder = [...playerRoster].sort((a, b) => b.pt - a.pt).map(p => p.id);
+    const p1OldPt = p1Acc.pt;
+    const p2OldPt = p2Acc.pt || 1000;
+    const p1OldTitle = getRankLabel(p1OldPt, matchState.p1Camp);
+    const p2OldTitle = getRankLabel(p2OldPt, matchState.p2Camp);
+
+    const p1WonMatch = matchState.p1Score >= matchState.p2Score;
+    iconEl.textContent = '🏆';
+    const winnerName = p1WonMatch ? p1Acc.name : p2Acc.name;
+    titleEl.textContent = `JUARA MUTLAK: ${winnerName.toUpperCase()} (${matchState.p1Score}-${matchState.p2Score})!`;
+
+    if (p1WonMatch) {
+      p1Acc.wins++;
+      p1Acc.pt += 35; // +35 Pt supaya mudah lihat kenaikan pangkat & gelaran
+      if (matchState.mode === 'pass' && p2Acc.id !== p1Acc.id) {
+        p2Acc.losses++;
+        p2Acc.pt = Math.max(800, p2Acc.pt - 20);
+      }
+    } else {
+      p1Acc.losses++;
+      p1Acc.pt = Math.max(800, p1Acc.pt - 20);
+      if (matchState.mode === 'pass' && p2Acc.id !== p1Acc.id) {
+        p2Acc.wins++;
+        p2Acc.pt += 35;
+      }
+    }
+
+    const newOrder = [...playerRoster].sort((a, b) => b.pt - a.pt).map(p => p.id);
+    const p1NewTitle = getRankLabel(p1Acc.pt, matchState.p1Camp);
+    const p2NewTitle = getRankLabel(p2Acc.pt || 1000, matchState.p2Camp);
+
+    lastRankingTransition = {
+      winnerId: p1WonMatch ? p1Acc.id : p2Acc.id,
+      loserId: p1WonMatch ? p2Acc.id : p1Acc.id,
+      p1Id: p1Acc.id,
+      p2Id: p2Acc.id,
+      p1DeltaPt: p1Acc.pt - p1OldPt,
+      p2DeltaPt: (p2Acc.pt || 1000) - p2OldPt,
+      p1RankDiff: oldOrder.indexOf(p1Acc.id) - newOrder.indexOf(p1Acc.id),
+      p2RankDiff: p2Acc.id !== 'bot' ? (oldOrder.indexOf(p2Acc.id) - newOrder.indexOf(p2Acc.id)) : 0,
+      newTitleUnlocked: p1WonMatch
+        ? (p1NewTitle !== p1OldTitle ? { player: p1Acc.name, oldT: p1OldTitle, newT: p1NewTitle, camp: matchState.p1Camp } : null)
+        : (matchState.mode === 'pass' && p2NewTitle !== p2OldTitle ? { player: p2Acc.name, oldT: p2OldTitle, newT: p2NewTitle, camp: matchState.p2Camp } : null),
+      winnerTitleNow: p1WonMatch ? p1NewTitle : p2NewTitle,
+      winnerName
+    };
+
+    matchLogs.unshift({
+      p1: p1Acc.name,
+      p2: p2Acc.name,
+      score: `${matchState.p1Score}-${matchState.p2Score}`,
+      winner: `${winnerName} (+35 Pt)`
+    });
+    matchLogs = matchLogs.slice(0, 10);
+    saveOfflineDatabase();
+    refreshPlayerDropdowns();
+
+    sumEl.innerHTML = `
+      <div style="font-weight:800;color:#065f46;margin-bottom:6px;">
+        Keputusan Akhir Best-of-5: ${p1Acc.name} (${matchState.p1Score}) vs ${p2Acc.name} (${matchState.p2Score})
+      </div>
+      <ul>${logsHTML}</ul>
+      ${tieBreakHTML}
+    `;
+
+    // Jangan terus kembali ke Home! Buka Papan Ranking & Gelaran terlebih dahulu!
+    nextBtn.textContent = '🏆 LIHAT RANKING & GELARAN TERKINI ➔';
+    nextBtn.onclick = () => {
+      closeModal('round-result-modal');
+      openLeaderboardModal(true);
+    };
+  }
+
+  openModal('round-result-modal');
+}
+
+/* =========================================================================
+   10. PAPAN RANKING DENGAN ANIMASI NAIK/TURUN & SENARAI 10 GELARAN
+   ========================================================================= */
+function openLeaderboardModal(fromMatchEnd = false) {
+  playBattleSFX('sparkle_fusion');
+  const sorted = [...playerRoster].sort((a, b) => b.pt - a.pt);
+  const homeBtn = document.getElementById('leaderboard-home-btn');
+  homeBtn.style.display = fromMatchEnd ? 'block' : 'none';
+
+  let promoBannerHTML = '';
+  if (fromMatchEnd && lastRankingTransition) {
+    if (lastRankingTransition.newTitleUnlocked) {
+      const u = lastRankingTransition.newTitleUnlocked;
+      promoBannerHTML = `
+        <div class="new-title-banner">
+          <div style="font-size:22px;">👑✨</div>
+          <div style="font-family:'Cinzel Decorative',cursive;font-size:13px;color:var(--gold);">TAHNIAH! NAIK GELARAN BAHARU!</div>
+          <div style="font-size:11.5px;margin-top:3px;">
+            <strong>${u.player}</strong> telah meningkat daripada <em>${u.oldT}</em> kepada Gelaran:<br/>
+            <strong style="font-size:14px;color:#fde047;">🔥 ${u.newT.toUpperCase()} 🔥</strong>
+          </div>
+        </div>
+      `;
+    } else {
+      promoBannerHTML = `
+        <div class="new-title-banner">
+          <div style="font-family:'Cinzel Decorative',cursive;font-size:12.5px;color:var(--gold);">🏆 KEMAS KINI MATA & GELARAN JUARA</div>
+          <div style="font-size:11.5px;margin-top:3px;">
+            Juara: <strong>${lastRankingTransition.winnerName}</strong> • Gelaran Semasa: <strong style="color:#fde047;">${lastRankingTransition.winnerTitleNow}</strong>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  const rankRows = sorted.map((p, idx) => {
+    let highlightClass = '';
+    let deltaBadge = '';
+
+    if (fromMatchEnd && lastRankingTransition) {
+      if (p.id === lastRankingTransition.p1Id) {
+        const dPt = lastRankingTransition.p1DeltaPt;
+        const rDiff = lastRankingTransition.p1RankDiff;
+        highlightClass = dPt >= 0 ? 'rank-up-highlight' : 'rank-down-highlight';
+        const rankMoveTxt = rDiff > 0 ? ` ⬆️ Naik ${rDiff} Tangga!` : (rDiff < 0 ? ` ⬇️ Turun ${Math.abs(rDiff)}` : '');
+        deltaBadge = `<span class="rank-delta-badge ${dPt >= 0 ? 'up' : 'down'}">${dPt >= 0 ? '+' + dPt : dPt} Pt${rankMoveTxt}</span>`;
+      } else if (p.id === lastRankingTransition.p2Id) {
+        const dPt = lastRankingTransition.p2DeltaPt;
+        const rDiff = lastRankingTransition.p2RankDiff;
+        highlightClass = dPt >= 0 ? 'rank-up-highlight' : 'rank-down-highlight';
+        const rankMoveTxt = rDiff > 0 ? ` ⬆️ Naik ${rDiff} Tangga!` : (rDiff < 0 ? ` ⬇️ Turun ${Math.abs(rDiff)}` : '');
+        deltaBadge = `<span class="rank-delta-badge ${dPt >= 0 ? 'up' : 'down'}">${dPt >= 0 ? '+' + dPt : dPt} Pt${rankMoveTxt}</span>`;
+      }
+    }
+
+    return `
+      <div class="roster-item ${highlightClass}" style="margin-bottom:6px;">
+        <div class="roster-item-left">
+          <strong style="width:22px;color:#7c2d12;">#${idx + 1}</strong>
+          <div class="avatar-circle" style="width:30px;height:30px;font-size:13px;">${renderAvatarNode(p)}</div>
+          <div>
+            <div style="font-weight:800;font-size:12px;">${p.name} ${deltaBadge}</div>
+            <div style="font-size:10px;color:#5c3a1e;">
+              🗡️ ${getRankLabel(p.pt, 'bomoh')} / 👻 ${getRankLabel(p.pt, 'hantu')} (${p.wins}M-${p.losses}K)
+            </div>
+          </div>
+        </div>
+        <strong style="color:#7c2d12;font-size:12.5px;">${p.pt} Pt</strong>
+      </div>
+    `;
+  }).join('');
+
+  const tierTableRows = RANK_TIERS.map(t => `
+    <tr>
+      <td style="padding:3px 4px;border-bottom:1px solid #d6c19a;font-weight:800;">#${t.level}</td>
+      <td style="padding:3px 4px;border-bottom:1px solid #d6c19a;color:#065f46;font-weight:700;">${t.bomohTitle}</td>
+      <td style="padding:3px 4px;border-bottom:1px solid #d6c19a;color:#7f1d1d;font-weight:700;">${t.hantuTitle}</td>
+      <td style="padding:3px 4px;border-bottom:1px solid #d6c19a;font-size:10px;">${t.maxPt > 50000 ? t.minPt + '+ Pt' : t.minPt + '–' + t.maxPt + ' Pt'}</td>
+    </tr>
+  `).join('');
+
+  document.getElementById('leaderboard-body').innerHTML = `
+    ${promoBannerHTML}
+    <h4>SENARAI RANKING PEMAIN (${playerRoster.length}/20)</h4>
+    <div>${rankRows}</div>
+
+    <h4 style="margin-top:12px;">10 TAHAP GELARAN RASMI (BOMOH & HANTU)</h4>
+    <table style="width:100%;border-collapse:collapse;font-size:10.5px;background:rgba(255,255,255,0.55);border-radius:6px;overflow:hidden;">
+      <thead>
+        <tr style="background:#dec392;text-align:left;">
+          <th style="padding:4px;">Thp</th>
+          <th style="padding:4px;">Kem Bomoh</th>
+          <th style="padding:4px;">Kem Hantu</th>
+          <th style="padding:4px;">Mata (Pt)</th>
+        </tr>
+      </thead>
+      <tbody>${tierTableRows}</tbody>
+    </table>
+  `;
+
+  openModal('leaderboard-modal');
+}
+
+function closeLeaderboardModal() {
+  closeModal('leaderboard-modal');
+}
+
+function returnHomeFromLeaderboard() {
+  closeModal('leaderboard-modal');
+  document.getElementById('battle-screen').classList.remove('active');
+  document.getElementById('home-screen').classList.add('active');
+}
+
+/* =========================================================================
+   11. GALERI 80 KAD, INSPECT & MUAT TURUN HTML
+   ========================================================================= */
+function findCard(id) {
+  return [...WATAK_BOMOH, ...EQUIP_BOMOH, ...WATAK_HANTU, ...EQUIP_HANTU].find(c => c.id === id);
+}
+
+function openInspectCard(cardId) {
+  const card = findCard(cardId);
+  if (!card) return;
+  playCardSFX(card);
+  document.getElementById('inspect-card-holder').innerHTML = renderCardElementHTML(card, { allowInspect: false });
+  document.getElementById('inspect-name').textContent = card.name;
+  const isEq = card.id.startsWith('eb_') || card.id.startsWith('eh_');
+  document.getElementById('inspect-stats').textContent = isEq
+    ? `Bonus Equip: +${card.atk} ATK | +${card.hp} HP`
+    : `Statistik Asas: ⚔️ ${card.atk} ATK | 🛡️ ${card.hp} HP`;
+  document.getElementById('inspect-desc').innerHTML =
+    `${card.desc}${card.synBonus ? `<br/><strong style="color:#0f766e;">🔗 Kombo Bersebelahan: ${card.synBonus}</strong>` : ''}`;
+  openModal('inspect-modal');
+}
+
+function openGalleryModal() {
+  renderGalleryTab('wb');
+  openModal('gallery-modal');
+}
+
+function renderGalleryTab(tab) {
+  const map = { wb: WATAK_BOMOH, eb: EQUIP_BOMOH, wh: WATAK_HANTU, eh: EQUIP_HANTU };
+  ['wb', 'eb', 'wh', 'eh'].forEach(t => {
+    document.getElementById('gtab-' + t).classList.toggle('active', t === tab);
+  });
+  document.getElementById('gallery-grid-box').innerHTML = map[tab].map(card => `
+    <div class="gallery-cell" onclick="openInspectCard('${card.id}')">
+      ${renderCardElementHTML(card, { allowInspect: false })}
+    </div>
+  `).join('');
+}
+
+function confirmBackToHome() {
+  if (confirm('Kembali ke Menu Utama? Perlawanan semasa akan ditamatkan.')) {
+    skipWaitPhase();
+    document.getElementById('reveal-banner-overlay').classList.remove('show');
+    document.getElementById('duel-theater-overlay').classList.remove('active');
+    document.getElementById('battle-screen').classList.remove('active');
+    document.getElementById('home-screen').classList.add('active');
+  }
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) {
+  if (id === 'roster-modal') stopSelfieCamera();
+  document.getElementById(id).classList.remove('open');
+}
+function closeOnBackdrop(e, id) {
+  if (e.target.id === id) closeModal(id);
+}
+
+function downloadStandaloneHTML() {
+  const htmlContent = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'Bomoh_vs_Hantu_Playtest_V4.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  applyHomeBackground();
+  initOfflineDatabase();
+  syncFromGoogleSpreadsheet(false);
+});
+</script>
+</body>
+</html>
