@@ -2783,67 +2783,36 @@ function getActiveTurnContext() {
 }
 
 function renderCardElementHTML(card, opts = {}) {
-  const {
-    faceDown = false,
-    camp = 'bomoh',
-    selected = false,
-    suggested = false,
-    equipAttached = null,
-    showEquipChip = false,
-    isDefeated = false,
-    isWinner = false,
-    flipAnim = false,
-    allowInspect = true,
-    statPop = false,
-    fusionGlow = false
-  } = opts;
+  const { faceDown=false, camp='bomoh', selected=false, suggested=false, equipAttached=null, showEquipChip=false, isDefeated=false, isWinner=false, flipAnim=false, allowInspect=true, statPop=false, fusionGlow=false } = opts;
 
-  if (faceDown) {
-    const backIcon = camp === 'bomoh' ? '🗡️' : '👻';
-    const backTitle = camp === 'bomoh' ? 'KEM BOMOH' : 'KEM HANTU';
-    return `
-      <div class="card-back-cover ${camp}">
-        <div class="card-back-emblem">${backIcon}</div>
-        <div class="card-back-label">${backTitle}</div>
-      </div>
-    `;
-  }
+  if (faceDown) return `<div class="card-back-cover ${camp}"><div style="font-size:20px;">${camp==='bomoh'?'🗡️':'👻'}</div><div style="font-size:7.5px;color:var(--gold-light);">${camp==='bomoh'?'KEM BOMOH':'KEM HANTU'}</div></div>`;
 
-  const isEquip = card.id.startsWith('eb_') || card.id.startsWith('eh_');
-  const isBomoh = card.id.startsWith('wb_') || card.id.startsWith('eb_');
-  const campClass = isBomoh ? 'camp-bomoh' : 'camp-hantu';
-  const typeClass = isEquip ? 'type-equip' : 'type-watak';
+  const isEq = card.id.startsWith('eb_') || card.id.startsWith('eh_');
+  const campCls = (card.id.startsWith('wb_') || card.id.startsWith('eb_')) ? 'camp-bomoh' : 'camp-hantu';
 
-  const atkTxt = isEquip ? `+${card.atk}` : card.atk;
-  const hpTxt  = isEquip ? `+${card.hp}` : card.hp;
+  const atkTxt = (isEq && card.atk > 0) ? `+${card.atk}` : card.atk;
+  const defTxt = (isEq && card.def > 0) ? `+${card.def}` : (card.def || 0);
+  const hpTxt = (isEq && card.hp > 0) ? `+${card.hp}` : card.hp;
 
-  let equipBadge = '';
-  if (equipAttached && showEquipChip) {
-    equipBadge = `<div class="equip-indicator-chip">⚡${equipAttached.icon}</div>`;
-  }
+  const imgLyr = card.img ? `<img class="card-custom-img-layer" src="${card.img}" onerror="this.style.display='none'">` : '';
+  const eqChp = (equipAttached && showEquipChip) ? `<div class="equip-indicator-chip">⚡Eq</div>` : '';
 
-  // Jika Lajur A dalam Google Sheets mempunyai link gambar (`card.img`), paparkan gambar tersebut!
-  const customImgHTML = card.img
-    ? `<img class="card-custom-img-layer" src="${card.img}" alt="${card.name}" onerror="this.style.display='none'" />`
-    : '';
+  // Teks Role hanya keluar jika tiada gambar
+  const centerLyr = !card.img ? `<div class="card-emoji-art">${card.icon||'🃏'}</div><div class="card-role-tag">${isEq?'KAD EQUIP':(card.role||'Watak')}</div>` : '';
 
   return `
-    <div class="card-unit ${campClass} ${typeClass} ${selected ? 'selected-in-hand' : ''} ${suggested ? 'suggested-in-hand' : ''} ${isDefeated ? 'defeated-greyscale' : ''} ${flipAnim ? 'flip-in' : ''} ${fusionGlow ? 'fusion-glow' : ''}">
-      ${customImgHTML}
+    <div class="card-unit ${campCls} ${isEq?'type-equip':'type-watak'} ${selected?'selected-in-hand':''} ${suggested?'suggested-in-hand':''} ${isDefeated?'defeated-greyscale':''} ${flipAnim?'flip-in':''} ${fusionGlow?'fusion-glow':''}">
+      ${imgLyr}
       <div class="card-top-stats">
-        <span class="stat-pill atk ${statPop ? 'stat-pop-up' : ''}">⚔️${atkTxt}</span>
-        <span class="stat-pill hp ${statPop ? 'stat-pop-up' : ''}">🛡️${hpTxt}</span>
+        <span class="stat-pill atk ${statPop?'stat-pop-up':''}"><img src="icon-atk.png" class="stat-icon-img">${atkTxt}</span>
+        <span class="stat-pill def ${statPop?'stat-pop-up':''}"><img src="icon-def.png" class="stat-icon-img">${defTxt}</span>
+        <span class="stat-pill hp ${statPop?'stat-pop-up':''}"><img src="icon-hp.png" class="stat-icon-img">${hpTxt}</span>
       </div>
-      ${equipBadge}
+      ${eqChp}
       ${allowInspect ? `<div class="card-info-btn" onclick="event.stopPropagation();openInspectCard('${card.id}')">i</div>` : ''}
-      <div class="card-center-icon">
-     ${!card.img ? `
-       <div class="card-emoji-art">${card.icon || '🃏'}</div>
-       <div class="card-role-tag">${isEquip ? 'KAD EQUIP' : (card.role || 'Watak')}</div>
-     ` : ''}
-   </div>
+      <div class="card-center-icon">${centerLyr}</div>
       <div class="card-bottom-name">${card.name}</div>
-      ${isDefeated ? `<div class="defeated-stamp"><span>KALAH</span></div>` : ''}
+      ${isDefeated ? `<div class="winner-crown-badge" style="background:#7f1d1d;color:#fecaca;">KALAH</div>` : ''}
       ${isWinner ? `<div class="winner-crown-badge">👑 MENANG</div>` : ''}
     </div>
   `;
@@ -3791,19 +3760,19 @@ function findCard(id) {
 function openInspectCard(cardId) {
   const card = findCard(cardId);
   if (!card) return;
-  playCardSFX(card);
+  if (typeof playCardSFX === 'function') playCardSFX(card);
   document.getElementById('inspect-card-holder').innerHTML = renderCardElementHTML(card, { allowInspect: false });
   document.getElementById('inspect-name').textContent = card.name;
+  
   const isEq = card.id.startsWith('eb_') || card.id.startsWith('eh_');
   const roleEl = document.getElementById('inspect-role');
-  if (roleEl) {
-    roleEl.textContent = isEq ? 'Kategori: Kad Equip / Senjata' : `Peranan (Role): ${card.role || 'Watak'}`;
-  }
-  document.getElementById('inspect-stats').textContent = isEq
-    ? `Bonus Equip: +${card.atk} ATK | +${card.hp} HP`
-    : `Statistik Asas: ⚔️ ${card.atk} ATK | 🛡️ ${card.hp} HP`;
-  document.getElementById('inspect-desc').innerHTML =
-    `${card.desc}${card.synBonus ? `<br/><strong style="color:#0f766e;">🔗 Kombo Bersebelahan: ${card.synBonus}</strong>` : ''}`;
+  if (roleEl) roleEl.textContent = isEq ? 'Kategori: Kad Equip' : `Peranan: ${card.role || 'Watak'}`;
+  
+  document.getElementById('inspect-stats').innerHTML = isEq
+    ? `Bonus Equip: ⚔️ +${card.atk} ATK | 🛡️ +${card.def||0} DEF | ❤️ +${card.hp} HP`
+    : `Statistik Asas: ⚔️ ${card.atk} ATK | 🛡️ ${card.def||0} DEF | ❤️ ${card.hp} HP`;
+    
+  document.getElementById('inspect-desc').innerHTML = `${card.desc||''}${card.synBonus ? `<br/><strong style="color:#0f766e;">🔗 Kombo: ${card.synBonus}</strong>` : ''}`;
   openModal('inspect-modal');
 }
 
